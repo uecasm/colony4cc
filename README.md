@@ -21,7 +21,7 @@ I'm not currently expecting there would be any reason for someone to base anothe
 
 ## Contributions
 
-Language files in particular are very welcome -- submit a Pull Request with the new files or other changes.  You can see a list of existing translations [here](src/main/resources/assets/storage4computercraft/lang).
+Language files in particular are very welcome -- submit a Pull Request with the new files or other changes.  You can see a list of existing translations [here](src/main/resources/assets/colony4cc/lang).
 
 Other suggestions, bug reports, and pull requests are also welcome, but please do your research first!
 
