@@ -1,0 +1,203 @@
+buildscript {
+    repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+    }
+}
+apply plugin: 'net.minecraftforge.gradle'
+// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+def extraModsDir = "mods-${minecraft_version}"
+
+version = "${mod_version}"
+group = 'mirality'
+archivesBaseName = "Colony4ComputerCraft-${minecraft_version}"
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+
+println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+minecraft {
+    mappings channel: 'snapshot', version: "${mappings_version}"
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+    
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.markers', ''
+            property 'forge.logging.console.level', 'debug'
+            //property 'mixin.env.disableRefMap', 'true'
+
+            mods {
+                colony4cc {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+            //property 'mixin.env.disableRefMap', 'true'
+
+            mods {
+                colony4cc {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+            //property 'mixin.env.disableRefMap', 'true'
+
+            args '--mod', 'colony4cc', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+
+            mods {
+                colony4cc {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+sourceSets {
+    main.resources.srcDirs += 'src/generated/resources'
+}
+
+processResources {
+    inputs.property 'version', project.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'META-INF/mods.toml'
+        expand 'version': project.version
+    }
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'META-INF/mods.toml'
+    }
+}
+
+repositories {
+    flatDir {
+        name "extra-mods"
+        dir file(extraModsDir)
+    }
+    maven {
+        name 'TOP'
+        url 'https://maven.tterrag.com/'
+    }
+    maven {
+        name 'HWYLA'
+        url 'https://maven.tehnut.info'
+    }
+    maven {
+        name 'JEI'
+        url 'https://dvs1.progwml6.com/files/maven'
+    }
+    maven {
+        name 'MineColonies'
+        url 'https://ldtteam.jfrog.io/ldtteam/modding'
+    }
+    maven {
+        name 'CC Tweaked'
+        url 'https://squiddev.cc/maven/'
+    }
+    maven {
+        name 'CurseMaven'
+        url 'https://www.cursemaven.com'
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    compile fg.deobf("org.squiddev:cc-tweaked-${cc_version}")
+
+    // sadly minecolonies doesn't have their maven set up properly...
+    //compile fg.deobf("com.minecolonies:minecolonies:${colony_version}:universal")
+    //compile fg.deobf("com.structurize:structurize:${structurize_version}:universal")
+    compile fg.deobf("curse.maven:minecolonies-245506:${colony_file}")
+    compile fg.deobf("curse.maven:structurize-298744:${structurize_file}")
+    runtimeOnly "com.ldtteam:datagenerators:0.1.38-ALPHA"
+
+    compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-${top_version}:api")
+    runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-${top_version}")
+    compileOnly fg.deobf("mcp.mobius.waila:Hwyla:${hwyla_version}:api")
+    runtimeOnly fg.deobf("mcp.mobius.waila:Hwyla:${hwyla_version}")
+    runtimeOnly fg.deobf("mezz.jei:jei-${jei_version}")
+
+    // extra mods for testing
+    for (mod in fileTree(dir: extraModsDir, include: '*.jar')) {
+        def basename = mod.name.substring(0, mod.name.length() - ".jar".length())
+        def sep = basename.lastIndexOf('-')
+        assert sep != -1
+        def name = basename.substring(0, sep)
+        def version = basename.substring(sep + 1)
+        runtimeOnly fg.deobf("extra-mods:$name:$version")
+    }
+}
+
+jar {
+    manifest {
+        attributes([
+            "Specification-Title": "colony4cc",
+            "Specification-Vendor": "Mirality",
+            "Specification-Version": "1",
+            "Implementation-Title": project.name,
+            "Implementation-Version": "${version}",
+            "Implementation-Vendor" :"Mirality",
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+jar.finalizedBy('reobfJar') 
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier 'deobf'
+}
+
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives deobfJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = project.group
+            artifactId = project.archivesBaseName
+            version = project.version
+            artifact jar
+            artifact sourcesJar
+            artifact deobfJar
+        }
+    }
+    repositories {
+        maven {
+            url "file:///${project.projectDir}/mcmodsrepo"
+        }
+    }
+}

@@ -1,0 +1,9 @@
+For more detailed information, see the wiki at https://github.com/uecasm/colony4cc/wiki
+
+The colony API is only available when a Colony Peripheral is attached to the computer at startup.  This assumes that you only have one such peripheral attached.
+Note that the global API may misbehave if you move the Peripheral block while the computer is running.  To recover from this, just restart the computer by holding Ctrl+R or reloading your save.
+
+You can also use peripheral.wrap to select a specific peripheral if multiple are connected for some reason, although this is unlikely to be useful.
+
+Functions in the colony API:
+[API]

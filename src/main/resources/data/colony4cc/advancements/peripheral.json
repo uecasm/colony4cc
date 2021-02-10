@@ -1,0 +1,26 @@
+{
+  "display": {
+    "icon": {
+      "item": "colony4cc:colony_peripheral"
+    },
+    "title": {
+      "translate": "advancements.colony4cc.colony_peripheral"
+    },
+    "description": {
+      "translate": "advancements.colony4cc.colony_peripheral.description"
+    }
+  },
+  "parent": "minecolonies:minecolonies/build_town_hall",
+  "criteria": {
+    "peripheral_in_inventory": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "colony4cc:colony_peripheral"
+          }
+        ]
+      }
+    }
+  }
+}
