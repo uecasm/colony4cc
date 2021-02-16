@@ -1,1 +1,5 @@
-d83a79650d8c8b3f8e32380ae876141fc61a68c4 data/computercraft/lua/rom/help/colony/colony.txt
+bc229f40b6aac5ed5ea7f32e2adde8ddd00fe7bd data/colony4cc/advancements/recipes/computercraft/pocket_advanced/pocket_colony.json
+23cfcce423f3687b1a396f6a948b3e712b313949 data/colony4cc/advancements/recipes/computercraft/pocket_normal/pocket_colony.json
+7bfc17ce131f76105a1ce2282e7d3dfcdf51fff2 data/colony4cc/recipes/pocket_advanced/pocket_colony.json
+1f7c7a455a21a7a3689f59cb5605dcfab6b102d6 data/colony4cc/recipes/pocket_normal/pocket_colony.json
+2c56594a214bf70153cbac3d4f41dc87053c4639 data/computercraft/lua/rom/help/colony/colony.txt

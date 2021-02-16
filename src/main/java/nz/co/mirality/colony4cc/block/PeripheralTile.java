@@ -1,10 +1,12 @@
-package nz.co.mirality.colony4cc;
+package nz.co.mirality.colony4cc.block;
 
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
+import nz.co.mirality.colony4cc.Colony4CC;
+import nz.co.mirality.colony4cc.peripheral.TileColonyPeripheral;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,10 +17,10 @@ public class PeripheralTile extends TileEntity {
     public PeripheralTile() {
         super(Colony4CC.PERIPHERAL_TILE.get());
 
-        this.peripheral = new ColonyPeripheral(this);
+        this.peripheral = new TileColonyPeripheral(this);
     }
 
-    private final ColonyPeripheral peripheral;
+    private final TileColonyPeripheral peripheral;
     private LazyOptional<IPeripheral> peripheralCap;
 
     @Nonnull

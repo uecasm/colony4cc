@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourcePackType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import nz.co.mirality.colony4cc.Colony4CC;
-import nz.co.mirality.colony4cc.ColonyPeripheral;
+import nz.co.mirality.colony4cc.peripheral.ColonyPeripheral;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedWriter;

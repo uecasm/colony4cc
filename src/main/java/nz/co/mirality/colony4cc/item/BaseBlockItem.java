@@ -1,4 +1,4 @@
-package nz.co.mirality.colony4cc;
+package nz.co.mirality.colony4cc.item;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;

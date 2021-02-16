@@ -1,4 +1,4 @@
-package nz.co.mirality.colony4cc;
+package nz.co.mirality.colony4cc.block;
 
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -8,6 +8,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockReader;
 import net.minecraftforge.common.ToolType;
+import nz.co.mirality.colony4cc.Colony4CC;
 
 import javax.annotation.Nullable;
 

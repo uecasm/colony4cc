@@ -65,7 +65,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
             //property 'mixin.env.disableRefMap', 'true'
 
-            args '--mod', 'colony4cc', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', 'colony4cc', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/'), '--existing-mod', 'computercraft'
 
             mods {
                 colony4cc {

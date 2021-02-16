@@ -1,16 +1,23 @@
 package nz.co.mirality.colony4cc;
 
+import dan200.computercraft.shared.PocketUpgrades;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import nz.co.mirality.colony4cc.block.PeripheralBlock;
+import nz.co.mirality.colony4cc.block.PeripheralTile;
+import nz.co.mirality.colony4cc.item.BaseBlockItem;
+import nz.co.mirality.colony4cc.pocket.PocketColony;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -54,6 +61,15 @@ public final class Colony4CC {
         BLOCKS.register(bus);
         ITEMS.register(bus);
         TILES.register(bus);
+    }
+
+    @SubscribeEvent
+    public static void commonSetup(FMLCommonSetupEvent e) {
+        registerComputerUpgrades();
+    }
+
+    public static void registerComputerUpgrades() {
+        PocketUpgrades.register(new PocketColony());
     }
 
     private static ItemGroup getComputerCraftGroup() {

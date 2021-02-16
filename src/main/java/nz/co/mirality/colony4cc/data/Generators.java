@@ -10,7 +10,10 @@ import nz.co.mirality.colony4cc.Colony4CC;
 public class Generators {
     @SubscribeEvent
     public static void gather(GatherDataEvent event) {
+        Colony4CC.registerComputerUpgrades();
+
         DataGenerator generator = event.getGenerator();
         generator.addProvider(new LuaHelpProvider(generator, event.getExistingFileHelper()));
+        generator.addProvider(new Recipes(generator));
     }
 }

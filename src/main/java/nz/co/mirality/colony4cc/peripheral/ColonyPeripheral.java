@@ -1,4 +1,4 @@
-package nz.co.mirality.colony4cc;
+package nz.co.mirality.colony4cc.peripheral;
 
 import com.ldtteam.structurize.util.LanguageHandler;
 import com.minecolonies.api.IMinecoloniesAPI;
@@ -9,6 +9,7 @@ import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.colony.managers.interfaces.IBuildingManager;
+import com.minecolonies.api.colony.permissions.Action;
 import com.minecolonies.api.colony.requestsystem.manager.IRequestManager;
 import com.minecolonies.api.colony.requestsystem.request.IRequest;
 import com.minecolonies.api.colony.requestsystem.requestable.IDeliverable;
@@ -27,6 +28,8 @@ import com.minecolonies.coremod.colony.buildings.utils.BuildingBuilderResource;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Tuple;
@@ -36,6 +39,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import nz.co.mirality.colony4cc.Colony4CC;
+import nz.co.mirality.colony4cc.LuaConversion;
 import nz.co.mirality.colony4cc.data.LuaDoc;
 
 import javax.annotation.Nonnull;
@@ -43,12 +48,11 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ColonyPeripheral implements IPeripheral {
-    public ColonyPeripheral(PeripheralTile tile) {
-        this.tile = tile;
-    }
-
-    private final PeripheralTile tile;
+public abstract class ColonyPeripheral implements IPeripheral {
+    public abstract World getWorld();
+    public abstract BlockPos getPos();
+    public abstract boolean equals(@Nullable IPeripheral other);
+    public abstract Object getTarget();
 
     @Nonnull
     @Override
@@ -56,33 +60,34 @@ public class ColonyPeripheral implements IPeripheral {
         return Colony4CC.PERIPHERAL_NAME;
     }
 
-    @Nullable
-    @Override
-    public Object getTarget() {
-        return this.tile;
-    }
-
-    @Override
-    public boolean equals(@Nullable IPeripheral other) {
-        if (other instanceof ColonyPeripheral) {
-            return this.tile == ((ColonyPeripheral) other).tile;
-        }
-        return false;
-    }
-
     private IColony getColony() {
-        World world = this.tile.getWorld();
+        World world = this.getWorld();
         if (world == null) return null;
 
         IMinecoloniesAPI api = IMinecoloniesAPI.getInstance();
         IColonyManager colonies = api.getColonyManager();
-        return colonies.getColonyByPosFromWorld(world, this.tile.getPos());
+        return colonies.getColonyByPosFromWorld(world, this.getPos());
+    }
+
+    protected boolean passedSecurityCheck = true;
+
+    protected void securityCheck(Entity entity) {
+        if (entity instanceof PlayerEntity) {
+            IColony colony = this.getColony();
+            if (colony != null) {
+                this.passedSecurityCheck = colony.getPermissions()
+                        .hasPermission((PlayerEntity) entity, Action.ACCESS_HUTS);
+                return;
+            }
+        }
+
+        this.passedSecurityCheck = false;
     }
 
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 1, order = 1)
     public final boolean isValid() {
-        return getColony() != null;
+        return this.passedSecurityCheck && getColony() != null;
     }
 
     @LuaFunction(mainThread = true)
@@ -94,18 +99,18 @@ public class ColonyPeripheral implements IPeripheral {
         }
 
         IColony colony = getColony();
-        if (colony == null) {
+        if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        return new Object[] { colony.isCoordInColony(this.tile.getWorld(), p.get()) };
+        return new Object[] { colony.isCoordInColony(this.getWorld(), p.get()) };
     }
 
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 2, order = 1)
     public final Object[] getInfo() {
         IColony colony = getColony();
-        if (colony == null) {
+        if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
@@ -127,7 +132,7 @@ public class ColonyPeripheral implements IPeripheral {
     @LuaDoc(group = 3, order = 1)
     public final Object[] getBuildings() {
         IColony colony = getColony();
-        if (colony == null) {
+        if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
@@ -150,7 +155,7 @@ public class ColonyPeripheral implements IPeripheral {
                 citizensData.add(citizenData);
             }
             for (int i = citizensData.size(); i < building.getMaxInhabitants(); ++i) {
-                citizensData.add(new HashMap<Object, Object>());
+                citizensData.add(new HashMap<>());
             }
 
             HashMap<Object, Object> data = new HashMap<>();
@@ -187,7 +192,7 @@ public class ColonyPeripheral implements IPeripheral {
     @LuaDoc(group = 4, order = 1)
     public final Object[] getCitizens() {
         IColony colony = getColony();
-        if (colony == null) {
+        if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
@@ -228,7 +233,7 @@ public class ColonyPeripheral implements IPeripheral {
     @LuaDoc(group = 5, order = 1)
     public final Object[] getWorkOrders() {
         IColony colony = getColony();
-        if (colony == null) {
+        if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
@@ -248,7 +253,7 @@ public class ColonyPeripheral implements IPeripheral {
     @LuaDoc(group = 5, order = 2, args = "number id")
     public final Object[] getWorkOrderResources(int id) {
         IColony colony = getColony();
-        if (colony == null) {
+        if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
@@ -276,12 +281,12 @@ public class ColonyPeripheral implements IPeripheral {
         // the builder only fully refreshes its resource list when accessed via View...
         // similarly, this information is not really available via the pure API.
         IBuildingView buildingView = IMinecoloniesAPI.getInstance().getColonyManager()
-                .getBuildingView(this.tile.getWorld().getDimensionKey(), pos);
+                .getBuildingView(this.getWorld().getDimensionKey(), pos);
         if (!(buildingView instanceof BuildingBuilder.View)) {
             return new Object[] { null, "not builder" };
         }
         IColony colony = getColony();
-        if (colony == null || buildingView.getColony().getID() != colony.getID()) {
+        if (colony == null || !this.passedSecurityCheck || buildingView.getColony().getID() != colony.getID()) {
             return new Object[] { null, "wrong colony" };
         }
 
@@ -309,7 +314,7 @@ public class ColonyPeripheral implements IPeripheral {
     @LuaDoc(group = 5, order = 5)
     public final Object[] getRequests() {
         IColony colony = getColony();
-        if (colony == null) {
+        if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
@@ -334,6 +339,7 @@ public class ColonyPeripheral implements IPeripheral {
             IDeliverable deliverable = (IDeliverable) request.getRequest();
             Map<Object, Object> data = new HashMap<>();
             //data.put("id", request.getId().getIdentifier().toString());
+            data.put("name", request.getShortDisplayString().getString());
             data.put("state", request.getState().toString());
             data.put("count", deliverable.getCount());
             data.put("minCount", deliverable.getMinimumCount());
@@ -349,7 +355,7 @@ public class ColonyPeripheral implements IPeripheral {
     @LuaDoc(group = 6, order = 1)
     public final Object[] getResearch() {
         IColony colony = getColony();
-        if (colony == null) {
+        if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
@@ -368,7 +374,7 @@ public class ColonyPeripheral implements IPeripheral {
     private List<Object> getResearch(@Nonnull String branch, @Nullable List<String> names,
                                      @Nonnull IGlobalResearchTree tree, @Nonnull ILocalResearchTree colonyTree) {
         List<Object> result = new ArrayList<>();
-        if (names != null) {
+        if (names != null || !this.passedSecurityCheck) {
             for (String name : names) {
                 IGlobalResearch research = tree.getResearch(branch, name);
                 if (research == null) continue;
