@@ -7,24 +7,63 @@ import dan200.computercraft.shared.computer.core.ComputerFamily;
 import dan200.computercraft.shared.pocket.items.PocketComputerItemFactory;
 import dan200.computercraft.shared.util.ImpostorRecipe;
 import net.minecraft.advancements.criterion.InventoryChangeTrigger;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.IFinishedRecipe;
-import net.minecraft.data.RecipeProvider;
-import net.minecraft.data.ShapedRecipeBuilder;
+import net.minecraft.data.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IItemProvider;
 import net.minecraft.util.ResourceLocation;
-import nz.co.mirality.colony4cc.Colony4CC;
+import net.minecraftforge.common.Tags;
 
 import javax.annotation.Nonnull;
 import java.util.Locale;
 import java.util.function.Consumer;
+
+import static com.ldtteam.structurize.items.ModItems.buildTool;
+import static com.minecolonies.api.items.ModItems.*;
+import static dan200.computercraft.shared.Registry.ModItems.*;
+import static nz.co.mirality.colony4cc.Colony4CC.*;
 
 public class Recipes extends RecipeProvider {
     public Recipes(DataGenerator generator) { super(generator); }
 
     @Override
     protected void registerRecipes(@Nonnull Consumer<IFinishedRecipe> add) {
+        registerColonyPeripheral(add);
+        registerPocketUpgrades(add);
+    }
+
+    private void registerColonyPeripheral(Consumer<IFinishedRecipe> add) {
+        ShapedRecipeBuilder
+                .shapedRecipe(PERIPHERAL_ITEM.get())
+                .patternLine("#B#")
+                .patternLine("CIS")
+                .patternLine("#M#")
+                .key('#', Tags.Items.DUSTS_REDSTONE)
+                .key('I', buildTool)
+                .key('B', flagBanner)
+                .key('C', clipboard)
+                .key('S', resourceScroll)
+                .key('M', WIRED_MODEM.get())
+                .addCriterion("has_items", inventoryChange(clipboard, resourceScroll))
+                .build(add);
+
+        ShapelessRecipeBuilder
+                .shapelessRecipe(UPGRADE_WIRELESS_NORMAL.get())
+                .addIngredient(PERIPHERAL_ITEM.get())
+                .addIngredient(WIRELESS_MODEM_NORMAL.get())
+                .addIngredient(Tags.Items.SLIMEBALLS)
+                .addCriterion("has_items", inventoryChange(PERIPHERAL_ITEM.get(), WIRELESS_MODEM_NORMAL.get()))
+                .build(add);
+
+        ShapelessRecipeBuilder
+                .shapelessRecipe(UPGRADE_WIRELESS_ADVANCED.get())
+                .addIngredient(PERIPHERAL_ITEM.get())
+                .addIngredient(WIRELESS_MODEM_ADVANCED.get())
+                .addIngredient(Tags.Items.SLIMEBALLS)
+                .addCriterion("has_items", inventoryChange(PERIPHERAL_ITEM.get(), WIRELESS_MODEM_ADVANCED.get()))
+                .build(add);
+    }
+
+    private void registerPocketUpgrades(Consumer<IFinishedRecipe> add) {
         for (ComputerFamily family : ComputerFamily.values()) {
             ItemStack base = PocketComputerItemFactory.create(-1, null, -1, family, null);
             if (base.isEmpty()) continue;
@@ -32,12 +71,12 @@ public class Recipes extends RecipeProvider {
             String nameId = family.name().toLowerCase(Locale.ROOT);
 
             for (IPocketUpgrade upgrade : PocketUpgrades.getUpgrades()) {
-                if (!upgrade.getUpgradeID().getNamespace().equals(Colony4CC.ID)) continue;
+                if (!upgrade.getUpgradeID().getNamespace().equals(ID)) continue;
 
                 ItemStack result = PocketComputerItemFactory.create(-1, null, -1, family, upgrade);
                 ShapedRecipeBuilder
                         .shapedRecipe(result.getItem())
-                        .setGroup(String.format("%s:pocket_%s", Colony4CC.CC_MOD_ID, nameId))
+                        .setGroup(String.format("%s:pocket_%s", CC_MOD_ID, nameId))
                         .patternLine("#")
                         .patternLine("P")
                         .key('#', base.getItem())
@@ -46,7 +85,7 @@ public class Recipes extends RecipeProvider {
                                 inventoryChange(base.getItem(), upgrade.getCraftingItem().getItem()))
                         .build(
                                 RecipeWrapper.wrap(ImpostorRecipe.SERIALIZER, add, result.getTag()),
-                                new ResourceLocation(Colony4CC.ID, String.format("pocket_%s/%s",
+                                new ResourceLocation(ID, String.format("pocket_%s/%s",
                                         nameId, upgrade.getUpgradeID().getPath()))
                         );
             }

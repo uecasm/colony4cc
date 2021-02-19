@@ -3,6 +3,7 @@
 ### 1.1.0
 
 - Added pocket computer support.
+- Added combined wireless+colony upgrade for pocket computer.
 
 ### 1.0.0
 

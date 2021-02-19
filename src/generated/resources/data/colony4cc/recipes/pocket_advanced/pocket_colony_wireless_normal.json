@@ -1,0 +1,20 @@
+{
+  "type": "computercraft:impostor_shaped",
+  "group": "computercraft:pocket_advanced",
+  "pattern": [
+    "#",
+    "P"
+  ],
+  "key": {
+    "#": {
+      "item": "computercraft:pocket_computer_advanced"
+    },
+    "P": {
+      "item": "colony4cc:colony_wireless_normal"
+    }
+  },
+  "result": {
+    "item": "computercraft:pocket_computer_advanced",
+    "nbt": "{Upgrade:\"colony4cc:pocket_colony_wireless_normal\"}"
+  }
+}

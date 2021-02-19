@@ -17,7 +17,9 @@ import net.minecraftforge.registries.ForgeRegistries;
 import nz.co.mirality.colony4cc.block.PeripheralBlock;
 import nz.co.mirality.colony4cc.block.PeripheralTile;
 import nz.co.mirality.colony4cc.item.BaseBlockItem;
+import nz.co.mirality.colony4cc.item.ColonyWirelessItem;
 import nz.co.mirality.colony4cc.pocket.PocketColony;
+import nz.co.mirality.colony4cc.pocket.PocketColonyWireless;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -55,6 +57,17 @@ public final class Colony4CC {
             = TILES.register(PERIPHERAL_ID,
                 () -> TileEntityType.Builder.create(PeripheralTile::new).build(null));
 
+    public static final RegistryObject<ColonyWirelessItem> UPGRADE_WIRELESS_NORMAL
+            = ITEMS.register("colony_wireless_normal",
+                () -> new ColonyWirelessItem(false, new Item.Properties().group(GROUP.get())));
+    public static final RegistryObject<ColonyWirelessItem> UPGRADE_WIRELESS_ADVANCED
+            = ITEMS.register("colony_wireless_advanced",
+                () -> new ColonyWirelessItem(true, new Item.Properties().group(GROUP.get())));
+
+    public static final Lazy<PocketColony> POCKET_COLONY = Lazy.of(PocketColony::new);
+    public static final Lazy<PocketColonyWireless> POCKET_COLONY_WIRELESS_NORMAL = Lazy.of(() -> new PocketColonyWireless(false));
+    public static final Lazy<PocketColonyWireless> POCKET_COLONY_WIRELESS_ADVANCED = Lazy.of(() -> new PocketColonyWireless(true));
+
     public Colony4CC() {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
 
@@ -69,7 +82,9 @@ public final class Colony4CC {
     }
 
     public static void registerComputerUpgrades() {
-        PocketUpgrades.register(new PocketColony());
+        PocketUpgrades.register(POCKET_COLONY.get());
+        PocketUpgrades.register(POCKET_COLONY_WIRELESS_NORMAL.get());
+        PocketUpgrades.register(POCKET_COLONY_WIRELESS_ADVANCED.get());
     }
 
     private static ItemGroup getComputerCraftGroup() {

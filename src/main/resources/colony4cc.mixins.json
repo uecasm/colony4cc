@@ -1,0 +1,10 @@
+{
+  "required": true,
+  "package": "nz.co.mirality.colony4cc.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "colony4cc.refmap.json",
+  "mixins": [
+    "MixinPocketServerComputer"
+  ],
+  "minVersion": "0.8"
+}

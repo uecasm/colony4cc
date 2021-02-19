@@ -35,6 +35,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -339,7 +340,8 @@ public abstract class ColonyPeripheral implements IPeripheral {
             IDeliverable deliverable = (IDeliverable) request.getRequest();
             Map<Object, Object> data = new HashMap<>();
             //data.put("id", request.getId().getIdentifier().toString());
-            data.put("name", request.getShortDisplayString().getString());
+            data.put("name", TextFormatting.getTextWithoutFormattingCodes(request.getShortDisplayString().getString()));
+            data.put("desc", TextFormatting.getTextWithoutFormattingCodes(request.getLongDisplayString().getString()));
             data.put("state", request.getState().toString());
             data.put("count", deliverable.getCount());
             data.put("minCount", deliverable.getMinimumCount());

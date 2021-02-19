@@ -3,7 +3,6 @@ package nz.co.mirality.colony4cc.pocket;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import dan200.computercraft.api.pocket.AbstractPocketUpgrade;
 import dan200.computercraft.api.pocket.IPocketAccess;
-import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import nz.co.mirality.colony4cc.Colony4CC;
 import nz.co.mirality.colony4cc.peripheral.PocketColonyPeripheral;

@@ -1,14 +1,17 @@
 buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://dist.creeper.host/Sponge/maven' }
         jcenter()
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.spongepowered.mixin'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
@@ -31,6 +34,7 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run')
+            arg "-mixin.config=colony4cc.mixins.json"
 
             //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.markers', ''
@@ -46,6 +50,7 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
+            arg "-mixin.config=colony4cc.mixins.json"
 
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
@@ -78,6 +83,10 @@ minecraft {
 
 sourceSets {
     main.resources.srcDirs += 'src/generated/resources'
+}
+
+mixin {
+    add sourceSets.main, "colony4cc.refmap.json"
 }
 
 processResources {
@@ -127,6 +136,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     compile fg.deobf("org.squiddev:cc-tweaked-${cc_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")
 
     // sadly minecolonies doesn't have their maven set up properly...
     //compile fg.deobf("com.minecolonies:minecolonies:${colony_version}:universal")
@@ -161,7 +171,8 @@ jar {
             "Implementation-Title": project.name,
             "Implementation-Version": "${version}",
             "Implementation-Vendor" :"Mirality",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "MixinConfigs": "colony4cc.mixins.json"
         ])
     }
 }

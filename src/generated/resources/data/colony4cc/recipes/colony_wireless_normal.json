@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "colony4cc:colony_peripheral"
+    },
+    {
+      "item": "computercraft:wireless_modem_normal"
+    },
+    {
+      "tag": "forge:slimeballs"
+    }
+  ],
+  "result": {
+    "item": "colony4cc:colony_wireless_normal"
+  }
+}

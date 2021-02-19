@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#B#",
+    "CIS",
+    "#M#"
+  ],
+  "key": {
+    "#": {
+      "tag": "forge:dusts/redstone"
+    },
+    "I": {
+      "item": "structurize:sceptergold"
+    },
+    "B": {
+      "item": "minecolonies:colony_banner"
+    },
+    "C": {
+      "item": "minecolonies:clipboard"
+    },
+    "S": {
+      "item": "minecolonies:resourcescroll"
+    },
+    "M": {
+      "item": "computercraft:wired_modem"
+    }
+  },
+  "result": {
+    "item": "colony4cc:colony_peripheral"
+  }
+}

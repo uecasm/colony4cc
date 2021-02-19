@@ -1,0 +1,42 @@
+{
+  "display": {
+    "icon": {
+      "item": "colony4cc:colony_wireless_normal"
+    },
+    "title": {
+      "translate": "advancements.colony4cc.pocket_colony_wireless_normal"
+    },
+    "description": {
+      "translate": "advancements.colony4cc.pocket_colony_wireless_normal.description"
+    },
+    "frame": "goal"
+  },
+  "parent": "colony4cc:pocket_colony",
+  "criteria": {
+    "normal_tablet_in_inventory": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "computercraft:pocket_computer_normal",
+            "nbt": "{Upgrade:\"colony4cc:pocket_colony_wireless_normal\"}"
+          }
+        ]
+      }
+    },
+    "advanced_tablet_in_inventory": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "computercraft:pocket_computer_advanced",
+            "nbt": "{Upgrade:\"colony4cc:pocket_colony_wireless_normal\"}"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    ["normal_tablet_in_inventory", "advanced_tablet_in_inventory"]
+  ]
+}

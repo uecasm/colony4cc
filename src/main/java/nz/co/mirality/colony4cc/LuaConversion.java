@@ -77,18 +77,10 @@ public final class LuaConversion {
                 return convertStack((ItemStack) value);
             }
             if (value instanceof GlobalPos) {
-                GlobalPos pos = (GlobalPos) value;
-                Map<Object, Object> result = (Map<Object, Object>) convert(pos.getPos());
-                result.put("world", pos.getDimension().getLocation().toString());
-                return result;
+                return convert((GlobalPos) value);
             }
             if (value instanceof BlockPos) {
-                BlockPos pos = (BlockPos) value;
-                Map<Object, Object> result = new HashMap<>();
-                result.put("x", pos.getX());
-                result.put("y", pos.getY());
-                result.put("z", pos.getZ());
-                return result;
+                return convert((BlockPos) value);
             }
             if (value instanceof CompoundNBT) {
                 return convertNbt((CompoundNBT) value);
@@ -100,6 +92,22 @@ public final class LuaConversion {
                 return ((ITextComponent) value).getString();
             }
             return null;
+        }
+
+        @Nonnull
+        private Map<Object, Object> convert(GlobalPos pos) {
+            Map<Object, Object> result = convert(pos.getPos());
+            result.put("world", pos.getDimension().getLocation().toString());
+            return result;
+        }
+
+        @Nonnull
+        private Map<Object, Object> convert(BlockPos pos) {
+            Map<Object, Object> result = new HashMap<>();
+            result.put("x", pos.getX());
+            result.put("y", pos.getY());
+            result.put("z", pos.getZ());
+            return result;
         }
 
         @Nonnull
@@ -142,6 +150,9 @@ public final class LuaConversion {
                 }
                 return result;
             }
+            // this doesn't correctly convert all kinds of NBT, but it's
+            // good enough for most purposes.  certainly anything this
+            // mod is likely to encounter.
             return nbt.getString();
         }
     }
