@@ -106,6 +106,7 @@ repositories {
         name "extra-mods"
         dir file(extraModsDir)
     }
+    mavenCentral()
     maven {
         name 'TOP'
         url 'https://maven.tterrag.com/'
@@ -120,11 +121,11 @@ repositories {
     }
     maven {
         name 'MineColonies'
-        url 'https://ldtteam.jfrog.io/ldtteam/modding'
+        url 'https://ldtteam.jfrog.io/artifactory/mods-maven'
     }
     maven {
         name 'CC Tweaked'
-        url 'https://squiddev.cc/maven/'
+        url 'https://squiddev.cc/maven'
     }
     maven {
         name 'CurseMaven'
@@ -138,18 +139,17 @@ dependencies {
     compile fg.deobf("org.squiddev:cc-tweaked-${cc_version}")
     compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")
 
-    // sadly minecolonies doesn't have their maven set up properly...
-    //compile fg.deobf("com.minecolonies:minecolonies:${colony_version}:universal")
-    //compile fg.deobf("com.structurize:structurize:${structurize_version}:universal")
-    compile fg.deobf("curse.maven:minecolonies-245506:${colony_file}")
-    compile fg.deobf("curse.maven:structurize-298744:${structurize_file}")
-    runtimeOnly "com.ldtteam:datagenerators:0.1.38-ALPHA"
+    compile fg.deobf("com.minecolonies:minecolonies:${colony_version}:universal")
+    compile fg.deobf("com.ldtteam:structurize:${structurize_version}:universal")
+    runtimeOnly fg.deobf("com.ldtteam:datagenerators:${datagen_version}")
 
     compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-${top_version}:api")
     runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-${top_version}")
     compileOnly fg.deobf("mcp.mobius.waila:Hwyla:${hwyla_version}:api")
     runtimeOnly fg.deobf("mcp.mobius.waila:Hwyla:${hwyla_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_version}")
+
+    compileOnly 'com.intellij:annotations:+@jar'
 
     // extra mods for testing
     for (mod in fileTree(dir: extraModsDir, include: '*.jar')) {

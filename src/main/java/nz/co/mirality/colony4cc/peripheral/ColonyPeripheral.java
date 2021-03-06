@@ -23,6 +23,7 @@ import com.minecolonies.api.research.IGlobalResearch;
 import com.minecolonies.api.research.IGlobalResearchTree;
 import com.minecolonies.api.research.ILocalResearch;
 import com.minecolonies.api.research.ILocalResearchTree;
+import com.minecolonies.api.research.effects.IResearchEffect;
 import com.minecolonies.api.research.util.ResearchState;
 import com.minecolonies.coremod.colony.buildings.utils.BuildingBuilderResource;
 import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
@@ -32,9 +33,11 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
@@ -365,7 +368,7 @@ public abstract class ColonyPeripheral implements IPeripheral {
         ILocalResearchTree colonyTree = colony.getResearchManager().getResearchTree();
 
         Map<Object, Object> result = new HashMap<>();
-        for (String branch : tree.getBranches()) {
+        for (ResourceLocation branch : tree.getBranches()) {
             result.put(branch, getResearch(branch, tree.getPrimaryResearch(branch), tree, colonyTree));
         }
 
@@ -373,22 +376,25 @@ public abstract class ColonyPeripheral implements IPeripheral {
     }
 
     @Nonnull
-    private List<Object> getResearch(@Nonnull String branch, @Nullable List<String> names,
+    private List<Object> getResearch(@Nonnull ResourceLocation branch, @Nullable List<ResourceLocation> names,
                                      @Nonnull IGlobalResearchTree tree, @Nonnull ILocalResearchTree colonyTree) {
         List<Object> result = new ArrayList<>();
-        if (names != null || !this.passedSecurityCheck) {
-            for (String name : names) {
-                IGlobalResearch research = tree.getResearch(branch, name);
+        if (names != null && this.passedSecurityCheck) {
+            for (ResourceLocation name : names) {
+                final IGlobalResearch research = tree.getResearch(branch, name);
                 if (research == null) continue;
-                ILocalResearch colonyResearch = colonyTree.getResearch(branch, name);
+                final ILocalResearch colonyResearch = colonyTree.getResearch(branch, name);
+
+                final List<ITextComponent> effects = research.getEffects().stream()
+                        .map(IResearchEffect::getDesc).collect(Collectors.toList());
 
                 Map<Object, Object> data = new HashMap<>();
                 data.put("id", name);
-                data.put("name", research.getDesc());
-                data.put("effect", research.getEffect().getDesc());
+                data.put("name", research.getName());
+                data.put("effects", effects);
                 data.put("status", (colonyResearch == null ? ResearchState.NOT_STARTED : colonyResearch.getState()).toString());
 
-                List<Object> children = getResearch(branch, research.getChilds(), tree, colonyTree);
+                List<Object> children = getResearch(branch, research.getChildren(), tree, colonyTree);
                 if (!children.isEmpty()) {
                     data.put("children", children);
                 }

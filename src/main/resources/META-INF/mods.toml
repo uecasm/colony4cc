@@ -29,12 +29,12 @@ This provides a basic ComputerCraft-accessible peripheral for MineColonies.
 [[dependencies.colony4cc]]
     modId="computercraft"
     mandatory=true
-    versionRange="[1.94.0,)"
+    versionRange="[1.95.2,)"
     ordering="AFTER"
     side="BOTH"
 [[dependencies.colony4cc]]
     modId="minecolonies"
     mandatory=true
-    versionRange="[0.13.602-ALPHA,)"
+    versionRange="[0.13.674-ALPHA,)"
     ordering="AFTER"
     side="BOTH"
