@@ -14,8 +14,8 @@ import javax.annotation.Nullable;
 
 public class PeripheralBlock extends Block {
     public PeripheralBlock() {
-        super(AbstractBlock.Properties.create(Material.IRON)
-            .hardnessAndResistance(2.2f, 11.f)
+        super(AbstractBlock.Properties.of(Material.METAL)
+            .strength(2.2f, 11.f)
             .harvestTool(ToolType.PICKAXE).harvestLevel(0)
             .sound(SoundType.METAL));
     }

@@ -31,11 +31,11 @@ public class TileColonyPeripheral extends ColonyPeripheral {
     @Nullable
     @Override
     public World getWorld() {
-        return this.tile.getWorld();
+        return this.tile.getLevel();
     }
 
     @Override
     public BlockPos getPos() {
-        return this.tile.getPos();
+        return this.tile.getBlockPos();
     }
 }

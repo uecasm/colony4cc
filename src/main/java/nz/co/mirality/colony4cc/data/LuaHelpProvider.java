@@ -38,7 +38,7 @@ public class LuaHelpProvider implements IDataProvider {
      * @param cache Directory cache
      */
     @Override
-    public void act(@Nonnull DirectoryCache cache) {
+    public void run(@Nonnull DirectoryCache cache) {
         generateHelp(cache, "colony/", "colony", ColonyPeripheral.class);
     }
 
@@ -70,15 +70,15 @@ public class LuaHelpProvider implements IDataProvider {
                 content = out.toString();
             }
 
-            String hash = HASH_FUNCTION.hashUnencodedChars(content).toString();
-            if (!Objects.equals(cache.getPreviousHash(path), hash) || !Files.exists(path)) {
+            String hash = SHA1.hashUnencodedChars(content).toString();
+            if (!Objects.equals(cache.getHash(path), hash) || !Files.exists(path)) {
                 Files.createDirectories(path.getParent());
 
                 try (BufferedWriter writer = Files.newBufferedWriter(path)) {
                     writer.write(content);
                 }
             }
-            cache.recordHash(path, hash);
+            cache.putNew(path, hash);
         } catch (IOException e) {
             Colony4CC.LOGGER.error("Error generating lua help for " + name, e);
         }

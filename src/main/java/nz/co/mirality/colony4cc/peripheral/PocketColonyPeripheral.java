@@ -14,8 +14,8 @@ public class PocketColonyPeripheral extends ColonyPeripheral {
 
     public void setEntity(Entity entity) {
         if (entity != null) {
-            this.world = entity.getEntityWorld();
-            this.pos = entity.getPosition();
+            this.world = entity.getCommandSenderWorld();
+            this.pos = entity.blockPosition();
             this.tracking = entity;
         }
         this.securityCheck(entity);

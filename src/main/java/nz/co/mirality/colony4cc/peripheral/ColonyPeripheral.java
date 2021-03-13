@@ -122,7 +122,7 @@ public abstract class ColonyPeripheral implements IPeripheral {
         data.put("id", colony.getID());
         data.put("name", colony.getName());
         data.put("active", colony.isActive());
-        data.put("location", GlobalPos.getPosition(colony.getDimension(), colony.getCenter()));
+        data.put("location", GlobalPos.of(colony.getDimension(), colony.getCenter()));
         data.put("style", colony.getStyle());
         data.put("happiness", colony.getOverallHappiness());
         data.put("mourning", colony.isMourning());
@@ -285,7 +285,7 @@ public abstract class ColonyPeripheral implements IPeripheral {
         // the builder only fully refreshes its resource list when accessed via View...
         // similarly, this information is not really available via the pure API.
         IBuildingView buildingView = IMinecoloniesAPI.getInstance().getColonyManager()
-                .getBuildingView(this.getWorld().getDimensionKey(), pos);
+                .getBuildingView(this.getWorld().dimension(), pos);
         if (!(buildingView instanceof BuildingBuilder.View)) {
             return new Object[] { null, "not builder" };
         }
@@ -343,8 +343,8 @@ public abstract class ColonyPeripheral implements IPeripheral {
             IDeliverable deliverable = (IDeliverable) request.getRequest();
             Map<Object, Object> data = new HashMap<>();
             //data.put("id", request.getId().getIdentifier().toString());
-            data.put("name", TextFormatting.getTextWithoutFormattingCodes(request.getShortDisplayString().getString()));
-            data.put("desc", TextFormatting.getTextWithoutFormattingCodes(request.getLongDisplayString().getString()));
+            data.put("name", TextFormatting.stripFormatting(request.getShortDisplayString().getString()));
+            data.put("desc", TextFormatting.stripFormatting(request.getLongDisplayString().getString()));
             data.put("state", request.getState().toString());
             data.put("count", deliverable.getCount());
             data.put("minCount", deliverable.getMinimumCount());

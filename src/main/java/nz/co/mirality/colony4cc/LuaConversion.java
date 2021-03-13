@@ -96,8 +96,8 @@ public final class LuaConversion {
 
         @Nonnull
         private Map<Object, Object> convert(GlobalPos pos) {
-            Map<Object, Object> result = convert(pos.getPos());
-            result.put("world", pos.getDimension().getLocation().toString());
+            Map<Object, Object> result = convert(pos.pos());
+            result.put("world", pos.dimension().location().toString());
             return result;
         }
 
@@ -135,7 +135,7 @@ public final class LuaConversion {
             if (nbt instanceof CompoundNBT) {
                 CompoundNBT compound = (CompoundNBT) nbt;
                 Map<Object, Object> result = new HashMap<>();
-                for (String key : compound.keySet()) {
+                for (String key : compound.getAllKeys()) {
                     result.put(key, convertNbt(compound.get(key)));
                 }
                 return result;
@@ -153,7 +153,7 @@ public final class LuaConversion {
             // this doesn't correctly convert all kinds of NBT, but it's
             // good enough for most purposes.  certainly anything this
             // mod is likely to encounter.
-            return nbt.getString();
+            return nbt.getAsString();
         }
     }
 }

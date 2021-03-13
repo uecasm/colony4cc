@@ -52,17 +52,17 @@ public final class Colony4CC {
             = BLOCKS.register(PERIPHERAL_ID, PeripheralBlock::new);
     public static final RegistryObject<BaseBlockItem> PERIPHERAL_ITEM
             = ITEMS.register(PERIPHERAL_ID,
-                () -> new BaseBlockItem(PERIPHERAL_BLOCK.get(), new Item.Properties().group(GROUP.get())));
+                () -> new BaseBlockItem(PERIPHERAL_BLOCK.get(), new Item.Properties().tab(GROUP.get())));
     public static final RegistryObject<TileEntityType<?>> PERIPHERAL_TILE
             = TILES.register(PERIPHERAL_ID,
-                () -> TileEntityType.Builder.create(PeripheralTile::new).build(null));
+                () -> TileEntityType.Builder.of(PeripheralTile::new).build(null));
 
     public static final RegistryObject<ColonyWirelessItem> UPGRADE_WIRELESS_NORMAL
             = ITEMS.register("colony_wireless_normal",
-                () -> new ColonyWirelessItem(false, new Item.Properties().group(GROUP.get())));
+                () -> new ColonyWirelessItem(false, new Item.Properties().tab(GROUP.get())));
     public static final RegistryObject<ColonyWirelessItem> UPGRADE_WIRELESS_ADVANCED
             = ITEMS.register("colony_wireless_advanced",
-                () -> new ColonyWirelessItem(true, new Item.Properties().group(GROUP.get())));
+                () -> new ColonyWirelessItem(true, new Item.Properties().tab(GROUP.get())));
 
     public static final Lazy<PocketColony> POCKET_COLONY = Lazy.of(PocketColony::new);
     public static final Lazy<PocketColonyWireless> POCKET_COLONY_WIRELESS_NORMAL = Lazy.of(() -> new PocketColonyWireless(false));
@@ -88,11 +88,11 @@ public final class Colony4CC {
     }
 
     private static ItemGroup getComputerCraftGroup() {
-        for (ItemGroup group : ItemGroup.GROUPS) {
-            if (group.getPath().equals(CC_MOD_ID)) return group;
+        for (ItemGroup group : ItemGroup.TABS) {
+            if (group.getRecipeFolderName().equals(CC_MOD_ID)) return group;
         }
 
         // couldn't find it for some reason...
-        return ItemGroup.MISC;
+        return ItemGroup.TAB_MISC;
     }
 }

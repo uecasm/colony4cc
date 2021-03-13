@@ -26,16 +26,16 @@ public class ColonyWirelessItem extends Item {
 
     @Nonnull
     @Override
-    public ActionResult<ItemStack> onItemRightClick(@Nonnull World world, @Nonnull PlayerEntity player, @Nonnull Hand hand) {
-        if (player.isSneaking() && hand == Hand.MAIN_HAND) {
-            ItemStack item = player.getHeldItem(hand);
+    public ActionResult<ItemStack> use(@Nonnull World world, @Nonnull PlayerEntity player, @Nonnull Hand hand) {
+        if (player.isShiftKeyDown() && hand == Hand.MAIN_HAND) {
+            ItemStack item = player.getItemInHand(hand);
             if (item.getCount() == 1 && item.getItem() == this) {
                 ItemStack modem = new ItemStack(ForgeRegistries.ITEMS.getValue(this.advanced ? WIRELESS_ADVANCED : WIRELESS_NORMAL));
                 ItemHandlerHelper.giveItemToPlayer(player, modem);
-                return ActionResult.resultSuccess(new ItemStack(Colony4CC.PERIPHERAL_ITEM.get()));
+                return ActionResult.success(new ItemStack(Colony4CC.PERIPHERAL_ITEM.get()));
             }
         }
 
-        return super.onItemRightClick(world, player, hand);
+        return super.use(world, player, hand);
     }
 }
