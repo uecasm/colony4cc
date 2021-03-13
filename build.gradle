@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
         classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
     }
 }
@@ -22,7 +22,7 @@ version = "${mod_version}"
 group = 'mirality'
 archivesBaseName = "Colony4ComputerCraft-${minecraft_version}"
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
@@ -39,7 +39,8 @@ minecraft {
             //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
-            //property 'mixin.env.disableRefMap', 'true'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             mods {
                 colony4cc {
@@ -54,7 +55,8 @@ minecraft {
 
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
-            //property 'mixin.env.disableRefMap', 'true'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             mods {
                 colony4cc {
@@ -68,7 +70,8 @@ minecraft {
 
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
-            //property 'mixin.env.disableRefMap', 'true'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             args '--mod', 'colony4cc', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/'), '--existing-mod', 'computercraft'
 
@@ -105,27 +108,46 @@ repositories {
     flatDir {
         name "extra-mods"
         dir file(extraModsDir)
+        content {
+            includeGroup 'extra-mods'
+        }
     }
     mavenCentral()
     maven {
         name 'TOP'
         url 'https://maven.tterrag.com/'
+        content {
+            includeGroup 'mcjty.theoneprobe'
+        }
     }
     maven {
         name 'HWYLA'
         url 'https://maven.tehnut.info'
+        content {
+            includeGroup 'mcp.mobius.waila'
+        }
     }
     maven {
         name 'JEI'
         url 'https://dvs1.progwml6.com/files/maven'
+        content {
+            includeGroup 'mezz.jei'
+        }
     }
     maven {
         name 'MineColonies'
-        url 'https://ldtteam.jfrog.io/artifactory/mods-maven'
+        url 'https://ldtteam.jfrog.io/ldtteam/modding'
+        content {
+            includeGroup 'com.minecolonies'
+            includeGroup 'com.ldtteam'
+        }
     }
     maven {
         name 'CC Tweaked'
         url 'https://squiddev.cc/maven'
+        content {
+            includeGroup 'org.squiddev'
+        }
     }
     maven {
         name 'CurseMaven'
@@ -137,8 +159,6 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     compile fg.deobf("org.squiddev:cc-tweaked-${cc_version}")
-    compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")
-
     compile fg.deobf("com.minecolonies:minecolonies:${colony_version}:universal")
     compile fg.deobf("com.ldtteam:structurize:${structurize_version}:universal")
     runtimeOnly fg.deobf("com.ldtteam:datagenerators:${datagen_version}")
@@ -147,6 +167,7 @@ dependencies {
     runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-${top_version}")
     compileOnly fg.deobf("mcp.mobius.waila:Hwyla:${hwyla_version}:api")
     runtimeOnly fg.deobf("mcp.mobius.waila:Hwyla:${hwyla_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${jei_version}:api")
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_version}")
 
     compileOnly 'com.intellij:annotations:+@jar'
