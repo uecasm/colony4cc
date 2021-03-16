@@ -6,7 +6,6 @@ import com.minecolonies.api.colony.ICitizenData;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.buildings.IBuilding;
-import com.minecolonies.api.colony.buildings.views.IBuildingView;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.colony.managers.interfaces.IBuildingManager;
 import com.minecolonies.api.colony.permissions.Action;
@@ -25,14 +24,16 @@ import com.minecolonies.api.research.ILocalResearch;
 import com.minecolonies.api.research.ILocalResearchTree;
 import com.minecolonies.api.research.effects.IResearchEffect;
 import com.minecolonies.api.research.util.ResearchState;
+import com.minecolonies.coremod.colony.buildings.AbstractBuildingStructureBuilder;
 import com.minecolonies.coremod.colony.buildings.utils.BuildingBuilderResource;
-import com.minecolonies.coremod.colony.buildings.workerbuildings.BuildingBuilder;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import io.netty.buffer.Unpooled;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
@@ -282,21 +283,28 @@ public abstract class ColonyPeripheral implements IPeripheral {
     }
 
     private Object[] getBuilderResources(BlockPos pos) {
-        // the builder only fully refreshes its resource list when accessed via View...
-        // similarly, this information is not really available via the pure API.
-        IBuildingView buildingView = IMinecoloniesAPI.getInstance().getColonyManager()
-                .getBuildingView(this.getWorld().dimension(), pos);
-        if (!(buildingView instanceof BuildingBuilder.View)) {
-            return new Object[] { null, "not builder" };
-        }
         IColony colony = getColony();
-        if (colony == null || !this.passedSecurityCheck || buildingView.getColony().getID() != colony.getID()) {
-            return new Object[] { null, "wrong colony" };
+        if (colony == null || !this.passedSecurityCheck) {
+            return new Object[] { null, "no colony" };
         }
 
-        BuildingBuilder.View builder = (BuildingBuilder.View) buildingView;
+        IBuilding building = colony.getBuildingManager().getBuilding(pos);
+        if (!(building instanceof AbstractBuildingStructureBuilder)) {
+            return new Object[] { null, "not builder" };
+        }
+
+        // the builder only fully refreshes its resource list when serialized to View data...
+        final PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
+        building.serializeToView(buffer);
+        buffer.release();
+
+        // ... but we can't actually create a View here since we might be server-only.
+        // fortunately we can now query the data from the server-side building after the above.
+        final List<BuildingBuilderResource> resources = new ArrayList<>(((AbstractBuildingStructureBuilder) building).getNeededResources().values());
+        resources.sort(new BuildingBuilderResource.ResourceComparator());
+
         List<Object> result = new ArrayList<>();
-        for (BuildingBuilderResource resource : builder.getResources().values()) {
+        for (BuildingBuilderResource resource : resources) {
             Map<Object, Object> data = new HashMap<>();
             // copying ensures amount from player is zero
             BuildingBuilderResource resourceCopy = new BuildingBuilderResource(resource.getItemStack(), resource.getAmount(), resource.getAvailable());

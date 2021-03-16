@@ -1,5 +1,11 @@
 # MineColonies for ComputerCraft Changelog
 
+### 1.2.1
+
+- Fixed `getWorkOrderResources` and `getBuilderResources` not working on servers.
+- `getWorkOrderResources` can now be used on the Miner as well.
+- Some internal build changes that should be invisible.
+
 ### 1.2.0
 
 - Bumped CC min version to 1.95.2
