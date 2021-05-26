@@ -2,9 +2,7 @@ package nz.co.mirality.colony4cc.peripheral;
 
 import com.ldtteam.structurize.util.LanguageHandler;
 import com.minecolonies.api.IMinecoloniesAPI;
-import com.minecolonies.api.colony.ICitizenData;
-import com.minecolonies.api.colony.IColony;
-import com.minecolonies.api.colony.IColonyManager;
+import com.minecolonies.api.colony.*;
 import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.colony.managers.interfaces.IBuildingManager;
@@ -232,6 +230,46 @@ public abstract class ColonyPeripheral implements IPeripheral {
         }
 
         return new Object[] { LuaConversion.convert(citizensData) };
+    }
+
+    @LuaFunction(mainThread = true)
+    @LuaDoc(group = 4, order = 2)
+    public final Object[] getVisitors() {
+        IColony colony = getColony();
+        if (colony == null || !this.passedSecurityCheck) {
+            return new Object[] { null, "no colony" };
+        }
+
+        List<Object> visitorsData = new ArrayList<>();
+        for (final ICivilianData civilian : colony.getVisitorManager().getCivilianDataMap().values()) {
+            if (!(civilian instanceof IVisitorData)) continue;
+            final IVisitorData visitor = (IVisitorData) civilian;
+            Map<Object, Object> data = new HashMap<>();
+            data.put("id", visitor.getId());
+            data.put("name", visitor.getName());
+            data.put("location", visitor.getLastPosition());
+            data.put("chair", visitor.getSittingPosition());
+            data.put("age", visitor.isChild() ? "child" : "adult");
+            data.put("sex", visitor.isFemale() ? "female" : "male");
+            data.put("saturation", visitor.getSaturation());
+            data.put("happiness", visitor.getCitizenHappinessHandler().getHappiness(colony));
+            data.put("cost", visitor.getRecruitCost());
+
+            Map<Object, Object> skillsData = new HashMap<>();
+            for (Map.Entry<Skill, Tuple<Integer, Double>> entry :
+                    visitor.getCitizenSkillHandler().getSkills().entrySet()) {
+                Map<Object, Object> skillData = new HashMap<>();
+                skillData.put("level", entry.getValue().getA());
+                skillData.put("xp", entry.getValue().getB());
+                skillsData.put(entry.getKey().name(), skillData);
+            }
+            data.put("skills", skillsData);
+            //data.put("jobSkill", citizen.getJobModifier());
+
+            visitorsData.add(data);
+        }
+
+        return new Object[] { LuaConversion.convert(visitorsData) };
     }
 
     @LuaFunction(mainThread = true)

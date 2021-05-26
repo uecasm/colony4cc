@@ -1,5 +1,9 @@
 # MineColonies for ComputerCraft Changelog
 
+### 1.2.2
+
+- Added `getVisitors`.
+
 ### 1.2.1
 
 - Fixed `getWorkOrderResources` and `getBuilderResources` not working on servers.

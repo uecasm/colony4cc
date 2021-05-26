@@ -11,6 +11,7 @@ colony.isWithin(table pos) => boolean
 colony.getInfo() => table
 colony.getBuildings() => table
 colony.getCitizens() => table
+colony.getVisitors() => table
 colony.getWorkOrders() => table
 colony.getWorkOrderResources(number id) => table
 colony.getBuilderResources(table pos) => table

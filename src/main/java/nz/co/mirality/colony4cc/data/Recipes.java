@@ -38,7 +38,7 @@ public class Recipes extends RecipeProvider {
                 .pattern("CIS")
                 .pattern("#M#")
                 .define('#', Tags.Items.DUSTS_REDSTONE)
-                .define('I', buildTool)
+                .define('I', buildTool.get())
                 .define('B', flagBanner)
                 .define('C', clipboard)
                 .define('S', resourceScroll)

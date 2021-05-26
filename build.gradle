@@ -181,6 +181,8 @@ dependencies {
         def version = basename.substring(sep + 1)
         runtimeOnly fg.deobf("extra-mods:$name:$version")
     }
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
 }
 
 jar {
