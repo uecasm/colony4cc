@@ -35,6 +35,6 @@ This provides a basic ComputerCraft-accessible peripheral for MineColonies.
 [[dependencies.colony4cc]]
     modId="minecolonies"
     mandatory=true
-    versionRange="[0.14.95,)"
+    versionRange="[0.14.95-BETA,)"
     ordering="AFTER"
     side="BOTH"

@@ -350,7 +350,7 @@ public abstract class ColonyPeripheral implements IPeripheral {
 
             ItemStack stack = resourceCopy.getItemStack().copy();
             stack.setCount(resourceCopy.getAmount());
-            data.put("item", resourceCopy.getItemStack());
+            data.put("item", stack);
             data.put("available", resourceCopy.getAvailable());
             data.put("delivering", resourceCopy.getAmountInDelivery());
             data.put("status", resourceCopy.getAvailabilityStatus().toString());

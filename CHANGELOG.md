@@ -1,5 +1,9 @@
 # MineColonies for ComputerCraft Changelog
 
+### 1.2.3
+
+- Fixed `getWorkOrderResources` and `getBuilderResources` not reporting count of requested items.
+
 ### 1.2.2
 
 - Added `getVisitors`.
