@@ -14,6 +14,7 @@ import com.minecolonies.api.colony.requestsystem.resolver.player.IPlayerRequestR
 import com.minecolonies.api.colony.requestsystem.resolver.retrying.IRetryingRequestResolver;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.colony.workorders.IWorkOrder;
+import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.api.research.IGlobalResearch;
@@ -28,6 +29,7 @@ import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -214,6 +216,12 @@ public abstract class ColonyPeripheral implements IPeripheral {
             data.put("sex", citizen.isFemale() ? "female" : "male");
             data.put("saturation", citizen.getSaturation());
             data.put("happiness", citizen.getCitizenHappinessHandler().getHappiness(colony));
+            citizen.getEntity().ifPresent(entity -> {
+                data.put("health", entity.getHealth());
+                data.put("max_health", entity.getAttributeValue(Attributes.MAX_HEALTH));
+                data.put("armor", entity.getAttributeValue(Attributes.ARMOR));
+                data.put("toughness", entity.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
+            });
 
             Map<Object, Object> skillsData = new HashMap<>();
             for (Map.Entry<Skill, Tuple<Integer, Double>> entry :
