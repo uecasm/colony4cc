@@ -1,21 +1,23 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/minecolonies-for-computercraft",
   "promos": {
-    "1.16.5-latest": "1.2.4",
+    "1.16.5-latest": "1.2.5",
     "1.16.5-recommended": "1.2.4",
-    "1.16.4-latest": "1.2.4",
+    "1.16.4-latest": "1.2.5",
     "1.16.4-recommended": "1.2.4"
   },
   "1.16.5": {
     "1.2.1": "Fixes resources list when on a server",
     "1.2.2": "Adds visitor data",
     "1.2.3": "Fixes resources list counts",
-    "1.2.4": "Adds citizen health and armor data"
+    "1.2.4": "Adds citizen health and armor data",
+    "1.2.5": "Adds error check for weird citizen data"
   },
   "1.16.4": {
     "1.2.1": "Fixes resources list when on a server",
     "1.2.2": "Adds visitor data",
     "1.2.3": "Fixes resources list counts",
-    "1.2.4": "Adds citizen health and armor data"
+    "1.2.4": "Adds citizen health and armor data",
+    "1.2.5": "Adds error check for weird citizen data"
   }
 }

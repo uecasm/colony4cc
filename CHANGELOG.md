@@ -1,5 +1,9 @@
 # MineColonies for ComputerCraft Changelog
 
+### 1.2.5
+
+- Added an error check for some weird condition breaking citizen data.
+
 ### 1.2.4
 
 - Added health and armor info to citizen data.

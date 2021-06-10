@@ -223,16 +223,22 @@ public abstract class ColonyPeripheral implements IPeripheral {
                 data.put("toughness", entity.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
             });
 
-            Map<Object, Object> skillsData = new HashMap<>();
-            for (Map.Entry<Skill, Tuple<Integer, Double>> entry :
-                    citizen.getCitizenSkillHandler().getSkills().entrySet()) {
-                Map<Object, Object> skillData = new HashMap<>();
-                skillData.put("level", entry.getValue().getA());
-                skillData.put("xp", entry.getValue().getB());
-                skillsData.put(entry.getKey().name(), skillData);
+            try {
+                Map<Object, Object> skillsData = new HashMap<>();
+                for (Map.Entry<Skill, Tuple<Integer, Double>> entry :
+                        citizen.getCitizenSkillHandler().getSkills().entrySet())
+                {
+                    Map<Object, Object> skillData = new HashMap<>();
+                    skillData.put("level", entry.getValue().getA());
+                    skillData.put("xp", entry.getValue().getB());
+                    skillsData.put(entry.getKey().name(), skillData);
+                }
+                data.put("skills", skillsData);
+                //data.put("jobSkill", citizen.getJobModifier());
+            } catch (Exception ex) {
+                Colony4CC.LOGGER.error(String.format("Error reading skills from citizen %d in colony %d: %s",
+                        citizen.getId(), colony.getID(), ex.getMessage()), ex);
             }
-            data.put("skills", skillsData);
-            //data.put("jobSkill", citizen.getJobModifier());
 
             citizensData.add(data);
         }
@@ -263,16 +269,21 @@ public abstract class ColonyPeripheral implements IPeripheral {
             data.put("happiness", visitor.getCitizenHappinessHandler().getHappiness(colony));
             data.put("cost", visitor.getRecruitCost());
 
-            Map<Object, Object> skillsData = new HashMap<>();
-            for (Map.Entry<Skill, Tuple<Integer, Double>> entry :
-                    visitor.getCitizenSkillHandler().getSkills().entrySet()) {
-                Map<Object, Object> skillData = new HashMap<>();
-                skillData.put("level", entry.getValue().getA());
-                skillData.put("xp", entry.getValue().getB());
-                skillsData.put(entry.getKey().name(), skillData);
+            try {
+                Map<Object, Object> skillsData = new HashMap<>();
+                for (Map.Entry<Skill, Tuple<Integer, Double>> entry :
+                        visitor.getCitizenSkillHandler().getSkills().entrySet()) {
+                    Map<Object, Object> skillData = new HashMap<>();
+                    skillData.put("level", entry.getValue().getA());
+                    skillData.put("xp", entry.getValue().getB());
+                    skillsData.put(entry.getKey().name(), skillData);
+                }
+                data.put("skills", skillsData);
+                //data.put("jobSkill", citizen.getJobModifier());
+            } catch (Exception ex) {
+                Colony4CC.LOGGER.error(String.format("Error reading skills from visitor %d in colony %d: %s",
+                        visitor.getId(), colony.getID(), ex.getMessage()), ex);
             }
-            data.put("skills", skillsData);
-            //data.put("jobSkill", citizen.getJobModifier());
 
             visitorsData.add(data);
         }
