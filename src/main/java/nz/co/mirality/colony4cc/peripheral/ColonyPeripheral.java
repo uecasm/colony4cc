@@ -14,7 +14,6 @@ import com.minecolonies.api.colony.requestsystem.resolver.player.IPlayerRequestR
 import com.minecolonies.api.colony.requestsystem.resolver.retrying.IRetryingRequestResolver;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.colony.workorders.IWorkOrder;
-import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
 import com.minecolonies.api.research.IGlobalResearch;
@@ -38,7 +37,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
@@ -47,10 +45,12 @@ import net.minecraftforge.items.IItemHandler;
 import nz.co.mirality.colony4cc.Colony4CC;
 import nz.co.mirality.colony4cc.LuaConversion;
 import nz.co.mirality.colony4cc.data.LuaDoc;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class ColonyPeripheral implements IPeripheral {
@@ -65,12 +65,13 @@ public abstract class ColonyPeripheral implements IPeripheral {
         return Colony4CC.PERIPHERAL_NAME;
     }
 
+    @Nullable
     private IColony getColony() {
-        World world = this.getWorld();
+        final World world = this.getWorld();
         if (world == null) return null;
 
-        IMinecoloniesAPI api = IMinecoloniesAPI.getInstance();
-        IColonyManager colonies = api.getColonyManager();
+        final IMinecoloniesAPI api = IMinecoloniesAPI.getInstance();
+        final IColonyManager colonies = api.getColonyManager();
         return colonies.getColonyByPosFromWorld(world, this.getPos());
     }
 
@@ -78,7 +79,7 @@ public abstract class ColonyPeripheral implements IPeripheral {
 
     protected void securityCheck(Entity entity) {
         if (entity instanceof PlayerEntity) {
-            IColony colony = this.getColony();
+            final IColony colony = this.getColony();
             if (colony != null) {
                 this.passedSecurityCheck = colony.getPermissions()
                         .hasPermission((PlayerEntity) entity, Action.ACCESS_HUTS);
@@ -98,12 +99,12 @@ public abstract class ColonyPeripheral implements IPeripheral {
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 1, order = 2, args = "table pos", returns = "boolean")
     public final Object[] isWithin(@Nullable Map<?, ?> pos) {
-        Optional<BlockPos> p = toBlockPos(pos);
+        final Optional<BlockPos> p = toBlockPos(pos);
         if (!p.isPresent()) {
             return new Object[] { null, "expected coordinates" };
         }
 
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
@@ -114,78 +115,78 @@ public abstract class ColonyPeripheral implements IPeripheral {
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 2, order = 1)
     public final Object[] getInfo() {
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        HashMap<Object, Object> data = new HashMap<>();
-        data.put("id", colony.getID());
-        data.put("name", colony.getName());
-        data.put("active", colony.isActive());
-        data.put("location", GlobalPos.of(colony.getDimension(), colony.getCenter()));
-        data.put("style", colony.getStyle());
-        data.put("happiness", colony.getOverallHappiness());
-        data.put("raid", colony.isColonyUnderAttack());
-        data.put("citizens", colony.getCitizenManager().getCurrentCitizenCount());
-        data.put("maxCitizens", colony.getCitizenManager().getMaxCitizens());
+        final Map<Object, Object> data = new HashMap<>();
+        protectPut("getInfo", data, "id", colony::getID);
+        protectPut("getInfo", data, "name", colony::getName);
+        protectPut("getInfo", data, "active", colony::isActive);
+        protectPut("getInfo", data, "location", () -> GlobalPos.of(colony.getDimension(), colony.getCenter()));
+        protectPut("getInfo", data, "style", colony::getStyle);
+        protectPut("getInfo", data, "happiness", colony::getOverallHappiness);
+        protectPut("getInfo", data, "raid", colony::isColonyUnderAttack);
+        protectPut("getInfo", data, "citizens", () -> colony.getCitizenManager().getCurrentCitizenCount());
+        protectPut("getInfo", data, "maxCitizens", () -> colony.getCitizenManager().getMaxCitizens());
         return new Object[] { LuaConversion.convert(data) };
     }
 
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 3, order = 1)
     public final Object[] getBuildings() {
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        IBuildingManager manager = colony.getBuildingManager();
-        List<Object> buildingData = new ArrayList<>();
-        for (Map.Entry<BlockPos, IBuilding> entry : manager.getBuildings().entrySet()) {
-            IBuilding building = entry.getValue();
+        final IBuildingManager manager = colony.getBuildingManager();
+        final List<Object> buildingData = new ArrayList<>();
+        for (final Map.Entry<BlockPos, IBuilding> entry : manager.getBuildings().entrySet()) {
+            final IBuilding building = entry.getValue();
 
-            Map<Object, Object> footprintData = new HashMap<>();
-            footprintData.put("corner1", building.getCorners().getA());
-            footprintData.put("corner2", building.getCorners().getB());
-            footprintData.put("rotation", building.getRotation());
-            footprintData.put("mirror", building.isMirrored());
+            final Map<Object, Object> footprintData = new HashMap<>();
+            protectPut("getBuildings.footprint", footprintData, "corner1", () -> building.getCorners().getA());
+            protectPut("getBuildings.footprint", footprintData, "corner2", () -> building.getCorners().getB());
+            protectPut("getBuildings.footprint", footprintData, "rotation", building::getRotation);
+            protectPut("getBuildings.footprint", footprintData, "mirror", building::isMirrored);
 
-            List<Object> citizensData = new ArrayList<>();
-            for (ICitizenData citizen : building.getAssignedCitizen()) {
-                Map<Object, Object> citizenData = new HashMap<>();
-                citizenData.put("id", citizen.getId());
-                citizenData.put("name", citizen.getName());
+            final List<Object> citizensData = new ArrayList<>();
+            for (final ICitizenData citizen : building.getAssignedCitizen()) {
+                final Map<Object, Object> citizenData = new HashMap<>();
+                protectPut("getBuildings.citizen", citizenData, "id", citizen::getId);
+                protectPut("getBuildings.citizen", citizenData, "name", citizen::getName);
                 citizensData.add(citizenData);
             }
             for (int i = citizensData.size(); i < building.getMaxInhabitants(); ++i) {
                 citizensData.add(new HashMap<>());
             }
 
-            HashMap<Object, Object> data = new HashMap<>();
+            final Map<Object, Object> data = new HashMap<>();
             data.put("location", entry.getKey());
-            data.put("type", building.getSchematicName());
-            data.put("style", building.getStyle());
-            data.put("level", building.getBuildingLevel());
-            data.put("maxLevel", building.getMaxBuildingLevel());
-            data.put("name", building.getCustomBuildingName());
-            data.put("built", building.isBuilt());
-            data.put("wip", building.hasWorkOrder());
-            data.put("priority", building.getPickUpPriority());
+            protectPut("getBuildings", data, "type", building::getSchematicName);
+            protectPut("getBuildings", data, "style", building::getStyle);
+            protectPut("getBuildings", data, "level", building::getBuildingLevel);
+            protectPut("getBuildings", data, "maxLevel", building::getMaxBuildingLevel);
+            protectPut("getBuildings", data, "name", building::getCustomBuildingName);
+            protectPut("getBuildings", data, "built", building::isBuilt);
+            protectPut("getBuildings", data, "wip", building::hasWorkOrder);
+            protectPut("getBuildings", data, "priority", building::getPickUpPriority);
             data.put("footprint", footprintData);
             data.put("citizens", citizensData);
-            data.put("storageBlocks", building.getContainers().size());
-            data.put("storageSlots", calculateStorageSlots(building));
-            data.put("guarded", manager.hasGuardBuildingNear(building));
+            protectPut("getBuildings", data, "storageBlocks", () -> building.getContainers().size());
+            protectPut("getBuildings", data, "storageSlots", () -> calculateStorageSlots(building));
+            protectPut("getBuildings", data, "guarded", () -> manager.hasGuardBuildingNear(building));
             buildingData.add(data);
         }
 
         return new Object[] { LuaConversion.convert(buildingData) };
     }
 
-    private static int calculateStorageSlots(IBuilding building) {
-        LazyOptional<IItemHandler> capability = building.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY);
-        IItemHandler handler = capability.resolve().orElse(null);
+    private static int calculateStorageSlots(@NotNull final IBuilding building) {
+        final LazyOptional<IItemHandler> capability = building.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY);
+        final IItemHandler handler = capability.resolve().orElse(null);
         if (handler != null) {
             return handler.getSlots();
         }
@@ -195,26 +196,26 @@ public abstract class ColonyPeripheral implements IPeripheral {
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 4, order = 1)
     public final Object[] getCitizens() {
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        List<Object> citizensData = new ArrayList<>();
-        for (ICitizenData citizen : colony.getCitizenManager().getCitizens()) {
-            Map<Object, Object> data = new HashMap<>();
-            data.put("id", citizen.getId());
-            data.put("name", citizen.getName());
-            data.put("location", citizen.getLastPosition());
-            data.put("bed", citizen.getHomeBuilding() == null ? null : citizen.getBedPos());
-            data.put("job", JobInfo(citizen.getJob()));
-            data.put("home", BuildingInfo(citizen.getHomeBuilding()));
-            data.put("work", BuildingInfo(citizen.getWorkBuilding()));
-            data.put("status", StatusInfo(citizen.getStatus()));
-            data.put("age", citizen.isChild() ? "child" : "adult");
-            data.put("sex", citizen.isFemale() ? "female" : "male");
-            data.put("saturation", citizen.getSaturation());
-            data.put("happiness", citizen.getCitizenHappinessHandler().getHappiness(colony));
+        final List<Object> citizensData = new ArrayList<>();
+        for (final ICitizenData citizen : colony.getCitizenManager().getCitizens()) {
+            final Map<Object, Object> data = new HashMap<>();
+            protectPut("getCitizens", data, "id", citizen::getId);
+            protectPut("getCitizens", data, "name", citizen::getName);
+            protectPut("getCitizens", data, "location", citizen::getLastPosition);
+            protectPut("getCitizens", data, "bed", () -> citizen.getHomeBuilding() == null ? null : citizen.getBedPos());
+            protectPut("getCitizens", data, "job", () -> JobInfo(citizen.getJob()));
+            protectPut("getCitizens", data, "home", () -> BuildingInfo(citizen.getHomeBuilding()));
+            protectPut("getCitizens", data, "work", () -> BuildingInfo(citizen.getWorkBuilding()));
+            protectPut("getCitizens", data, "status", () -> StatusInfo(citizen.getStatus()));
+            protectPut("getCitizens", data, "age", () -> citizen.isChild() ? "child" : "adult");
+            protectPut("getCitizens", data, "sex", () -> citizen.isFemale() ? "female" : "male");
+            protectPut("getCitizens", data, "saturation", citizen::getSaturation);
+            protectPut("getCitizens", data, "happiness", () -> citizen.getCitizenHappinessHandler().getHappiness(colony));
             citizen.getEntity().ifPresent(entity -> {
                 data.put("health", entity.getHealth());
                 data.put("max_health", entity.getAttributeValue(Attributes.MAX_HEALTH));
@@ -223,11 +224,11 @@ public abstract class ColonyPeripheral implements IPeripheral {
             });
 
             try {
-                Map<Object, Object> skillsData = new HashMap<>();
-                for (Map.Entry<Skill, Tuple<Integer, Double>> entry :
+                final Map<Object, Object> skillsData = new HashMap<>();
+                for (final Map.Entry<Skill, Tuple<Integer, Double>> entry :
                         citizen.getCitizenSkillHandler().getSkills().entrySet())
                 {
-                    Map<Object, Object> skillData = new HashMap<>();
+                    final Map<Object, Object> skillData = new HashMap<>();
                     skillData.put("level", entry.getValue().getA());
                     skillData.put("xp", entry.getValue().getB());
                     skillsData.put(entry.getKey().name(), skillData);
@@ -248,31 +249,31 @@ public abstract class ColonyPeripheral implements IPeripheral {
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 4, order = 2)
     public final Object[] getVisitors() {
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        List<Object> visitorsData = new ArrayList<>();
+        final List<Object> visitorsData = new ArrayList<>();
         for (final ICivilianData civilian : colony.getVisitorManager().getCivilianDataMap().values()) {
             if (!(civilian instanceof IVisitorData)) continue;
             final IVisitorData visitor = (IVisitorData) civilian;
-            Map<Object, Object> data = new HashMap<>();
-            data.put("id", visitor.getId());
-            data.put("name", visitor.getName());
-            data.put("location", visitor.getLastPosition());
-            data.put("chair", visitor.getSittingPosition());
-            data.put("age", visitor.isChild() ? "child" : "adult");
-            data.put("sex", visitor.isFemale() ? "female" : "male");
-            data.put("saturation", visitor.getSaturation());
-            data.put("happiness", visitor.getCitizenHappinessHandler().getHappiness(colony));
-            data.put("cost", visitor.getRecruitCost());
+            final Map<Object, Object> data = new HashMap<>();
+            protectPut("getVisitors", data, "id", visitor::getId);
+            protectPut("getVisitors", data, "name", visitor::getName);
+            protectPut("getVisitors", data, "location", visitor::getLastPosition);
+            protectPut("getVisitors", data, "chair", visitor::getSittingPosition);
+            protectPut("getVisitors", data, "age", () -> visitor.isChild() ? "child" : "adult");
+            protectPut("getVisitors", data, "sex", () -> visitor.isFemale() ? "female" : "male");
+            protectPut("getVisitors", data, "saturation", visitor::getSaturation);
+            protectPut("getVisitors", data, "happiness", () -> visitor.getCitizenHappinessHandler().getHappiness(colony));
+            protectPut("getVisitors", data, "cost", visitor::getRecruitCost);
 
             try {
-                Map<Object, Object> skillsData = new HashMap<>();
-                for (Map.Entry<Skill, Tuple<Integer, Double>> entry :
+                final Map<Object, Object> skillsData = new HashMap<>();
+                for (final Map.Entry<Skill, Tuple<Integer, Double>> entry :
                         visitor.getCitizenSkillHandler().getSkills().entrySet()) {
-                    Map<Object, Object> skillData = new HashMap<>();
+                    final Map<Object, Object> skillData = new HashMap<>();
                     skillData.put("level", entry.getValue().getA());
                     skillData.put("xp", entry.getValue().getB());
                     skillsData.put(entry.getKey().name(), skillData);
@@ -293,13 +294,13 @@ public abstract class ColonyPeripheral implements IPeripheral {
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 5, order = 1)
     public final Object[] getWorkOrders() {
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        List<Object> worksData = new ArrayList<>();
-        for (IWorkOrder workOrder : colony.getWorkManager().getWorkOrders().values()) {
+        final List<Object> worksData = new ArrayList<>();
+        for (final IWorkOrder workOrder : colony.getWorkManager().getWorkOrders().values()) {
             // the API does not currently provide sufficient methods to usefully decode
             // a work order, so we just render its raw property data for now.
             CompoundNBT nbt = new CompoundNBT();
@@ -313,12 +314,12 @@ public abstract class ColonyPeripheral implements IPeripheral {
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 5, order = 2, args = "number id")
     public final Object[] getWorkOrderResources(int id) {
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        IWorkOrder workOrder = colony.getWorkManager().getWorkOrder(id);
+        final IWorkOrder workOrder = colony.getWorkManager().getWorkOrder(id);
         if (workOrder == null) {
             return new Object[] { null, "no work order" };
         }
@@ -339,12 +340,12 @@ public abstract class ColonyPeripheral implements IPeripheral {
     }
 
     private Object[] getBuilderResources(BlockPos pos) {
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        IBuilding building = colony.getBuildingManager().getBuilding(pos);
+        final IBuilding building = colony.getBuildingManager().getBuilding(pos);
         if (!(building instanceof AbstractBuildingStructureBuilder)) {
             return new Object[] { null, "not builder" };
         }
@@ -359,19 +360,19 @@ public abstract class ColonyPeripheral implements IPeripheral {
         final List<BuildingBuilderResource> resources = new ArrayList<>(((AbstractBuildingStructureBuilder) building).getNeededResources().values());
         resources.sort(new BuildingBuilderResource.ResourceComparator());
 
-        List<Object> result = new ArrayList<>();
+        final List<Object> result = new ArrayList<>();
         for (BuildingBuilderResource resource : resources) {
-            Map<Object, Object> data = new HashMap<>();
+            final Map<Object, Object> data = new HashMap<>();
             // copying ensures amount from player is zero
-            BuildingBuilderResource resourceCopy = new BuildingBuilderResource(resource.getItemStack(), resource.getAmount(), resource.getAvailable());
+            final BuildingBuilderResource resourceCopy = new BuildingBuilderResource(resource.getItemStack(), resource.getAmount(), resource.getAvailable());
             resourceCopy.setAmountInDelivery(resource.getAmountInDelivery());
 
-            ItemStack stack = resourceCopy.getItemStack().copy();
+            final ItemStack stack = resourceCopy.getItemStack().copy();
             stack.setCount(resourceCopy.getAmount());
             data.put("item", stack);
-            data.put("available", resourceCopy.getAvailable());
-            data.put("delivering", resourceCopy.getAmountInDelivery());
-            data.put("status", resourceCopy.getAvailabilityStatus().toString());
+            protectPut("getBuilderResources", data, "available", resourceCopy::getAvailable);
+            protectPut("getBuilderResources", data, "delivering", resourceCopy::getAmountInDelivery);
+            protectPut("getBuilderResources", data, "status", () -> resourceCopy.getAvailabilityStatus().toString());
             result.add(data);
         }
 
@@ -381,39 +382,39 @@ public abstract class ColonyPeripheral implements IPeripheral {
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 5, order = 5)
     public final Object[] getRequests() {
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        IRequestManager manager = colony.getRequestManager();
+        final IRequestManager manager = colony.getRequestManager();
         if (manager == null) {
             return new Object[] { null, "no request system" };
         }
 
-        IPlayerRequestResolver player = manager.getPlayerResolver();
-        IRetryingRequestResolver retrying = manager.getRetryingRequestResolver();
+        final IPlayerRequestResolver player = manager.getPlayerResolver();
+        final IRetryingRequestResolver retrying = manager.getRetryingRequestResolver();
 
-        Set<IToken<?>> tokens = new HashSet<>();
+        final Set<IToken<?>> tokens = new HashSet<>();
         tokens.addAll(player.getAllAssignedRequests());
         tokens.addAll(retrying.getAllAssignedRequests());
 
-        List<IRequest<?>> requests = tokens.stream().map(manager::getRequestForToken)
+        final List<IRequest<?>> requests = tokens.stream().map(manager::getRequestForToken)
                 .filter(r -> r != null && r.getRequest() instanceof IDeliverable)
                 .distinct().collect(Collectors.toList());
 
-        List<Object> result = new ArrayList<>();
-        for (IRequest<?> request : requests) {
-            IDeliverable deliverable = (IDeliverable) request.getRequest();
-            Map<Object, Object> data = new HashMap<>();
-            //data.put("id", request.getId().getIdentifier().toString());
-            data.put("name", TextFormatting.stripFormatting(request.getShortDisplayString().getString()));
-            data.put("desc", TextFormatting.stripFormatting(request.getLongDisplayString().getString()));
-            data.put("state", request.getState().toString());
-            data.put("count", deliverable.getCount());
-            data.put("minCount", deliverable.getMinimumCount());
-            data.put("items", request.getDisplayStacks());
-            data.put("target", request.getRequester().getRequesterDisplayName(manager, request).getString());
+        final List<Object> result = new ArrayList<>();
+        for (final IRequest<?> request : requests) {
+            final IDeliverable deliverable = (IDeliverable) request.getRequest();
+            final Map<Object, Object> data = new HashMap<>();
+            //protectPut("getRequests", data, "id", () -> request.getId().getIdentifier().toString());
+            protectPut("getRequests", data, "name", () -> TextFormatting.stripFormatting(request.getShortDisplayString().getString()));
+            protectPut("getRequests", data, "desc", () -> TextFormatting.stripFormatting(request.getLongDisplayString().getString()));
+            protectPut("getRequests", data, "state", () -> request.getState().toString());
+            protectPut("getRequests", data, "count", deliverable::getCount);
+            protectPut("getRequests", data, "minCount", deliverable::getMinimumCount);
+            protectPut("getRequests", data, "items", request::getDisplayStacks);
+            protectPut("getRequests", data, "target", () -> request.getRequester().getRequesterDisplayName(manager, request).getString());
             result.add(data);
         }
 
@@ -423,16 +424,16 @@ public abstract class ColonyPeripheral implements IPeripheral {
     @LuaFunction(mainThread = true)
     @LuaDoc(group = 6, order = 1)
     public final Object[] getResearch() {
-        IColony colony = getColony();
+        final IColony colony = getColony();
         if (colony == null || !this.passedSecurityCheck) {
             return new Object[] { null, "no colony" };
         }
 
-        IGlobalResearchTree tree = IGlobalResearchTree.getInstance();
-        ILocalResearchTree colonyTree = colony.getResearchManager().getResearchTree();
+        final IGlobalResearchTree tree = IGlobalResearchTree.getInstance();
+        final ILocalResearchTree colonyTree = colony.getResearchManager().getResearchTree();
 
-        Map<Object, Object> result = new HashMap<>();
-        for (ResourceLocation branch : tree.getBranches()) {
+        final Map<Object, Object> result = new HashMap<>();
+        for (final ResourceLocation branch : tree.getBranches()) {
             result.put(branch, getResearch(branch, tree.getPrimaryResearch(branch), tree, colonyTree));
         }
 
@@ -442,23 +443,23 @@ public abstract class ColonyPeripheral implements IPeripheral {
     @Nonnull
     private List<Object> getResearch(@Nonnull ResourceLocation branch, @Nullable List<ResourceLocation> names,
                                      @Nonnull IGlobalResearchTree tree, @Nonnull ILocalResearchTree colonyTree) {
-        List<Object> result = new ArrayList<>();
+        final List<Object> result = new ArrayList<>();
         if (names != null && this.passedSecurityCheck) {
-            for (ResourceLocation name : names) {
+            for (final ResourceLocation name : names) {
                 final IGlobalResearch research = tree.getResearch(branch, name);
                 if (research == null) continue;
                 final ILocalResearch colonyResearch = colonyTree.getResearch(branch, name);
 
-                final List<ITextComponent> effects = research.getEffects().stream()
-                        .map(IResearchEffect::getDesc).collect(Collectors.toList());
-
-                Map<Object, Object> data = new HashMap<>();
+                final Map<Object, Object> data = new HashMap<>();
                 data.put("id", name);
-                data.put("name", research.getName());
-                data.put("effects", effects);
-                data.put("status", (colonyResearch == null ? ResearchState.NOT_STARTED : colonyResearch.getState()).toString());
+                protectPut("getResearch", data, "name", research::getName);
+                protectPut("getResearch", data, "effects",
+                        () -> research.getEffects().stream()
+                            .map(IResearchEffect::getDesc).collect(Collectors.toList()));
+                protectPut("getResearch", data, "status",
+                        () -> (colonyResearch == null ? ResearchState.NOT_STARTED : colonyResearch.getState()).toString());
 
-                List<Object> children = getResearch(branch, research.getChildren(), tree, colonyTree);
+                final List<Object> children = getResearch(branch, research.getChildren(), tree, colonyTree);
                 if (!children.isEmpty()) {
                     data.put("children", children);
                 }
@@ -473,9 +474,9 @@ public abstract class ColonyPeripheral implements IPeripheral {
             return Optional.empty();
         }
 
-        int x = ((Number) table.get("x")).intValue();
-        int y = ((Number) table.get("y")).intValue();
-        int z = ((Number) table.get("z")).intValue();
+        final int x = ((Number) table.get("x")).intValue();
+        final int y = ((Number) table.get("y")).intValue();
+        final int z = ((Number) table.get("z")).intValue();
 
         return Optional.of(new BlockPos(x, y, z));
     }
@@ -488,15 +489,27 @@ public abstract class ColonyPeripheral implements IPeripheral {
     private static Object BuildingInfo(IBuilding building) {
         if (building == null) return null;
 
-        Map<Object, Object> data = new HashMap<>();
-        data.put("location", building.getPosition());
-        data.put("type", building.getSchematicName());
-        data.put("level", building.getBuildingLevel());
+        final Map<Object, Object> data = new HashMap<>();
+        protectPut("BuildingInfo", data, "location", building::getPosition);
+        protectPut("BuildingInfo", data, "type", building::getSchematicName);
+        protectPut("BuildingInfo", data, "level", building::getBuildingLevel);
         return data;
     }
 
     private static Object StatusInfo(VisibleCitizenStatus status) {
         if (status == null) return "Idle";
         return status.getTranslatedText();
+    }
+
+    private static void protectPut(@NotNull final String context,
+                                   @NotNull final Map<Object, Object> data,
+                                   @NotNull final String key,
+                                   @NotNull final Supplier<Object> valueProvider)
+    {
+        try {
+            data.put(key, valueProvider.get());
+        } catch (Exception ex) {
+            Colony4CC.LOGGER.error("Error generating " + key + " in " + context, ex);
+        }
     }
 }
