@@ -126,7 +126,6 @@ public abstract class ColonyPeripheral implements IPeripheral {
         data.put("location", GlobalPos.of(colony.getDimension(), colony.getCenter()));
         data.put("style", colony.getStyle());
         data.put("happiness", colony.getOverallHappiness());
-        data.put("mourning", colony.isMourning());
         data.put("raid", colony.isColonyUnderAttack());
         data.put("citizens", colony.getCitizenManager().getCurrentCitizenCount());
         data.put("maxCitizens", colony.getCitizenManager().getMaxCitizens());

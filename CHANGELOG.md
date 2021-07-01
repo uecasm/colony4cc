@@ -1,5 +1,10 @@
 # MineColonies for ComputerCraft Changelog
 
+### 1.3.0
+
+- Bumped MineColonies minimum version to 0.14.226-ALPHA.
+- Fixed `getInfo` error in versions from 0.14.217-ALPHA.
+
 ### 1.2.5
 
 - Added an error check for some weird condition breaking citizen data.

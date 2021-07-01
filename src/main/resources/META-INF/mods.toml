@@ -1,13 +1,13 @@
 modLoader="javafml"
 loaderVersion="[35,)"
-license="MIT"
+license="GPLv3"
 issueTrackerURL="https://github.com/uecasm/colony4cc/issues"
 [[mods]]
 modId="colony4cc"
 version="${version}"
 displayName="MineColonies for ComputerCraft"
 updateJSONURL="https://raw.githubusercontent.com/uecasm/colony4cc/trunk/update.json"
-displayURL="https://github.com/uecasm/colony4cc"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/minecolonies-for-computercraft"
 logoFile="logo.png"
 credits="ComputerCraft addon for MineColonies"
 authors="Mirality"
@@ -17,13 +17,13 @@ This provides a basic ComputerCraft-accessible peripheral for MineColonies.
 [[dependencies.colony4cc]]
     modId="forge"
     mandatory=true
-    versionRange="[35,)"
+    versionRange="[36,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.colony4cc]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16.4,1.17)"
+    versionRange="[1.16.5,1.17)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.colony4cc]]
@@ -35,6 +35,6 @@ This provides a basic ComputerCraft-accessible peripheral for MineColonies.
 [[dependencies.colony4cc]]
     modId="minecolonies"
     mandatory=true
-    versionRange="[0.14.95-BETA,)"
+    versionRange="[0.14.226-ALPHA,)"
     ordering="AFTER"
     side="BOTH"
