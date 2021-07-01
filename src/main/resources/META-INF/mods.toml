@@ -38,3 +38,9 @@ This provides a basic ComputerCraft-accessible peripheral for MineColonies.
     versionRange="[0.14.226-ALPHA,)"
     ordering="AFTER"
     side="BOTH"
+[[dependencies.colony4cc]]
+    modId="jei"
+    mandatory=false
+    versionRange="[7.6.2,)"
+    ordering="NONE"
+    side="CLIENT"

@@ -1,5 +1,6 @@
 package nz.co.mirality.colony4cc.peripheral;
 
+import com.google.common.base.Functions;
 import com.ldtteam.structurize.util.LanguageHandler;
 import com.minecolonies.api.IMinecoloniesAPI;
 import com.minecolonies.api.colony.*;
@@ -7,6 +8,9 @@ import com.minecolonies.api.colony.buildings.IBuilding;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.colony.managers.interfaces.IBuildingManager;
 import com.minecolonies.api.colony.permissions.Action;
+import com.minecolonies.api.colony.permissions.IPermissions;
+import com.minecolonies.api.colony.permissions.Player;
+import com.minecolonies.api.colony.permissions.Rank;
 import com.minecolonies.api.colony.requestsystem.manager.IRequestManager;
 import com.minecolonies.api.colony.requestsystem.request.IRequest;
 import com.minecolonies.api.colony.requestsystem.requestable.IDeliverable;
@@ -22,6 +26,7 @@ import com.minecolonies.api.research.ILocalResearch;
 import com.minecolonies.api.research.ILocalResearchTree;
 import com.minecolonies.api.research.effects.IResearchEffect;
 import com.minecolonies.api.research.util.ResearchState;
+import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.colony.buildings.AbstractBuildingStructureBuilder;
 import com.minecolonies.coremod.colony.buildings.utils.BuildingBuilderResource;
 import dan200.computercraft.api.lua.LuaFunction;
@@ -52,6 +57,8 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static com.minecolonies.api.util.constant.WindowConstants.KEY_TO_PERMISSIONS;
 
 public abstract class ColonyPeripheral implements IPeripheral {
     public abstract World getWorld();
@@ -292,6 +299,77 @@ public abstract class ColonyPeripheral implements IPeripheral {
     }
 
     @LuaFunction(mainThread = true)
+    @LuaDoc(group = 4, order = 3)
+    public final Object[] getPlayers()
+    {
+        final IColony colony = getColony();
+        if (colony == null || !this.passedSecurityCheck)
+        {
+            return new Object[]{null, "no colony"};
+        }
+
+        final IPermissions permissions = colony.getPermissions();
+        final Set<UUID> officersPresent = colony.getMessagePlayerEntities().stream()
+            .map(Entity::getUUID)
+            .collect(Collectors.toSet());
+
+        Map<UUID, PlayerEntity> visitors;
+        try {
+            visitors = ((Colony) colony).getVisitingPlayers().stream()
+                .collect(Collectors.toMap(Entity::getUUID, Functions.identity()));
+        } catch (Exception ex) {
+            visitors = new HashMap<>();
+        }
+
+        final List<Map<Object, Object>> players = new ArrayList<>();
+        for (final Player player : permissions.getPlayers().values())
+        {
+            final boolean isVisitor = visitors.containsKey(player.getID());
+            visitors.remove(player.getID());
+
+            final Map<Object, Object> playerData = new HashMap<>();
+            protectPut("getPlayers.players", playerData, "name", player::getName);
+            protectPut("getPlayers.players", playerData, "rank", () -> player.getRank().getName());
+            if (officersPresent.contains(player.getID())) {
+                playerData.put("present", true);
+            } else {
+                playerData.put("present", isVisitor);
+            }
+            players.add(playerData);
+        }
+        for (final PlayerEntity player : visitors.values())
+        {
+            final Map<Object, Object> playerData = new HashMap<>();
+            protectPut("getPlayers.players", playerData, "name", player::getName);
+            playerData.put("present", true);
+            players.add(playerData);
+        }
+
+        final List<Map<Object, Object>> ranks = new ArrayList<>();
+        for (final Rank rank : permissions.getRanks().values())
+        {
+            final Map<Object, Object> rankData = new HashMap<>();
+            protectPut("getPlayers.ranks", rankData, "name", rank::getName);
+            protectPut("getPlayers.ranks", rankData, "hostile", rank::isHostile);
+            final List<Object> permission = new ArrayList<>();
+            for (final Action action : Action.values())
+            {
+                if (permissions.hasPermission(rank, action)) {
+                    permission.add(ActionInfo(action));
+                }
+            }
+            rankData.put("permissions", permission);
+            ranks.add(rankData);
+        }
+
+        final Map<Object, Object> data = new HashMap<>();
+        data.put("players", players);
+        data.put("ranks", ranks);
+
+        return new Object[] { LuaConversion.convert(data) };
+    }
+
+    @LuaFunction(mainThread = true)
     @LuaDoc(group = 5, order = 1)
     public final Object[] getWorkOrders() {
         final IColony colony = getColony();
@@ -486,7 +564,7 @@ public abstract class ColonyPeripheral implements IPeripheral {
         return LanguageHandler.translateKey(job.getName());
     }
 
-    private static Object BuildingInfo(IBuilding building) {
+    private static Object BuildingInfo(@Nullable final IBuilding building) {
         if (building == null) return null;
 
         final Map<Object, Object> data = new HashMap<>();
@@ -496,9 +574,15 @@ public abstract class ColonyPeripheral implements IPeripheral {
         return data;
     }
 
-    private static Object StatusInfo(VisibleCitizenStatus status) {
+    private static Object StatusInfo(@Nullable final VisibleCitizenStatus status) {
         if (status == null) return "Idle";
         return status.getTranslatedText();
+    }
+
+    private static Object ActionInfo(@NotNull final Action action) {
+        final String name = action.toString().toLowerCase(Locale.US);
+        final String desc = LanguageHandler.format(KEY_TO_PERMISSIONS + name);
+        return desc.contains(KEY_TO_PERMISSIONS) ? name : desc;
     }
 
     private static void protectPut(@NotNull final String context,

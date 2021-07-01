@@ -3,7 +3,10 @@
 ### 1.3.0
 
 - Bumped MineColonies minimum version to 0.14.226-ALPHA.
+- Bumped CC:Tweaked minimum version to 1.97.0. 
+- Bumped (optional) JEI minimum version to 7.6.2.
 - Fixed `getInfo` error in versions from 0.14.217-ALPHA.
+- Added `getPlayers`.
 
 ### 1.2.5
 

@@ -73,7 +73,7 @@ minecraft {
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
-            args '--mod', 'colony4cc', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/'), '--existing-mod', 'computercraft'
+            args '--mod', 'colony4cc', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/'), '--existing-mod', 'computercraft', '--existing-mod', 'structurize', '--existing-mod', 'minecolonies'
 
             mods {
                 colony4cc {
@@ -159,7 +159,9 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     compile fg.deobf("org.squiddev:cc-tweaked-${cc_version}")
-    compile fg.deobf("com.minecolonies:minecolonies:${colony_version}:universal")
+    compile(fg.deobf("com.minecolonies:minecolonies:${colony_version}:universal") {
+        exclude group: "mezz.jei", module: "*"
+    })
     compile fg.deobf("com.ldtteam:structurize:${structurize_version}:universal")
     runtimeOnly fg.deobf("com.ldtteam:datagenerators:${datagen_version}")
 
