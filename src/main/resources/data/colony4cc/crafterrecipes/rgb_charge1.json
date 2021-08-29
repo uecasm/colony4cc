@@ -1,0 +1,33 @@
+{
+  "type" : "recipe",
+  "crafter": "blacksmith_crafting",
+  "inputs": [
+    {
+      "item" : "minecraft:red_dye",
+      "count": "1"
+    },
+    {
+      "item" : "minecraft:green_dye",
+      "count": "1"
+    },
+    {
+      "item" : "minecraft:blue_dye",
+      "count": "1"
+    },
+    {
+      "item" : "minecraft:glowstone_dust",
+      "count": "1"
+    },
+    {
+      "item" : "minecraft:redstone",
+      "count": "1"
+    },
+    {
+      "item" : "minecraft:gunpowder",
+      "count": "1"
+    }
+  ],
+  "result": "colony4cc:rgb_charge",
+  "count": 6,
+  "not-research-id": "colony4cc:effects/rgb_charge2"
+}

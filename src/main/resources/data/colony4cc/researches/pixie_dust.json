@@ -1,0 +1,27 @@
+{
+  "branch": "minecolonies:technology",
+  "parentResearch": "minecolonies:technology/morescrolls",
+  "researchLevel": 4,
+  "name": "research.colony4cc.pixie_dust.name",
+  "subtitle": "research.colony4cc.pixie_dust.subtitle",
+  "icon": "minecolonies:scroll_highlight",
+  "requirements": [
+    {
+      "building": "enchanter",
+      "level": 4
+    },
+    {
+      "building": "glassblower",
+      "level": 4
+    },
+    {
+      "item": "minecolonies:scroll_highlight",
+      "quantity": 16
+    }
+  ],
+  "effects": [
+    {
+      "colony4cc:effects/free_worker_highlight": 1
+    }
+  ]
+}

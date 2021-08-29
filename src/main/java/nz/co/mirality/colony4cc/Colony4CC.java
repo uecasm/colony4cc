@@ -8,8 +8,10 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
@@ -18,6 +20,7 @@ import nz.co.mirality.colony4cc.block.PeripheralBlock;
 import nz.co.mirality.colony4cc.block.PeripheralTile;
 import nz.co.mirality.colony4cc.item.BaseBlockItem;
 import nz.co.mirality.colony4cc.item.ColonyWirelessItem;
+import nz.co.mirality.colony4cc.network.Colony4CCPacketHandler;
 import nz.co.mirality.colony4cc.pocket.PocketColony;
 import nz.co.mirality.colony4cc.pocket.PocketColonyWireless;
 import org.apache.logging.log4j.LogManager;
@@ -38,6 +41,7 @@ public final class Colony4CC {
     public static final String PERIPHERAL_NAME = "colony";
 
     public static final Logger LOGGER = LogManager.getLogger();
+    public static final Colony4CCConfig CONFIG = new Colony4CCConfig();
 
     public static final Supplier<ItemGroup> GROUP = Lazy.of(Colony4CC::getComputerCraftGroup);
 
@@ -63,6 +67,9 @@ public final class Colony4CC {
     public static final RegistryObject<ColonyWirelessItem> UPGRADE_WIRELESS_ADVANCED
             = ITEMS.register("colony_wireless_advanced",
                 () -> new ColonyWirelessItem(true, new Item.Properties().tab(GROUP.get())));
+    public static final RegistryObject<Item> RGB_CHARGE
+            = ITEMS.register("rgb_charge",
+                () -> new Item(new Item.Properties().tab(GROUP.get())));
 
     public static final Lazy<PocketColony> POCKET_COLONY = Lazy.of(PocketColony::new);
     public static final Lazy<PocketColonyWireless> POCKET_COLONY_WIRELESS_NORMAL = Lazy.of(() -> new PocketColonyWireless(false));
@@ -74,6 +81,9 @@ public final class Colony4CC {
         BLOCKS.register(bus);
         ITEMS.register(bus);
         TILES.register(bus);
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, CONFIG.getSpec());
+        Colony4CCPacketHandler.init();
     }
 
     @SubscribeEvent

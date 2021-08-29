@@ -18,8 +18,10 @@ import com.minecolonies.api.colony.requestsystem.resolver.player.IPlayerRequestR
 import com.minecolonies.api.colony.requestsystem.resolver.retrying.IRetryingRequestResolver;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.colony.workorders.IWorkOrder;
+import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
 import com.minecolonies.api.entity.citizen.Skill;
 import com.minecolonies.api.entity.citizen.VisibleCitizenStatus;
+import com.minecolonies.api.items.ModItems;
 import com.minecolonies.api.research.IGlobalResearch;
 import com.minecolonies.api.research.IGlobalResearchTree;
 import com.minecolonies.api.research.ILocalResearch;
@@ -29,28 +31,40 @@ import com.minecolonies.api.research.util.ResearchState;
 import com.minecolonies.coremod.colony.Colony;
 import com.minecolonies.coremod.colony.buildings.AbstractBuildingStructureBuilder;
 import com.minecolonies.coremod.colony.buildings.utils.BuildingBuilderResource;
+import dan200.computercraft.api.lua.IArguments;
+import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.GlobalPos;
+import net.minecraft.util.math.MutableBoundingBox;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import nz.co.mirality.colony4cc.Colony4CC;
 import nz.co.mirality.colony4cc.LuaConversion;
 import nz.co.mirality.colony4cc.data.LuaDoc;
-import org.jetbrains.annotations.NotNull;
+import nz.co.mirality.colony4cc.network.Colony4CCPacketHandler;
+import nz.co.mirality.colony4cc.network.SAddBuildingOverlayPacket;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,12 +73,15 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.minecolonies.api.util.constant.WindowConstants.KEY_TO_PERMISSIONS;
+import static nz.co.mirality.colony4cc.Colony4CC.RGB_CHARGE;
+import static nz.co.mirality.colony4cc.Constants.*;
 
 public abstract class ColonyPeripheral implements IPeripheral {
     public abstract World getWorld();
     public abstract BlockPos getPos();
     public abstract boolean equals(@Nullable IPeripheral other);
     public abstract Object getTarget();
+    @Nullable protected abstract IItemHandler getInventory(@Nullable Direction side);
 
     @Nonnull
     @Override
@@ -176,6 +193,7 @@ public abstract class ColonyPeripheral implements IPeripheral {
             protectPut("getBuildings", data, "style", building::getStyle);
             protectPut("getBuildings", data, "level", building::getBuildingLevel);
             protectPut("getBuildings", data, "maxLevel", building::getMaxBuildingLevel);
+            protectPut("getBuildings", data, "claimRadius", () -> building.getClaimRadius(building.getBuildingLevel()));
             protectPut("getBuildings", data, "name", building::getCustomBuildingName);
             protectPut("getBuildings", data, "built", building::isBuilt);
             protectPut("getBuildings", data, "wip", building::hasWorkOrder);
@@ -191,7 +209,7 @@ public abstract class ColonyPeripheral implements IPeripheral {
         return new Object[] { LuaConversion.convert(buildingData) };
     }
 
-    private static int calculateStorageSlots(@NotNull final IBuilding building) {
+    private static int calculateStorageSlots(@Nonnull final IBuilding building) {
         final LazyOptional<IItemHandler> capability = building.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY);
         final IItemHandler handler = capability.resolve().orElse(null);
         if (handler != null) {
@@ -518,6 +536,115 @@ public abstract class ColonyPeripheral implements IPeripheral {
         return new Object[] { LuaConversion.convert(result) };
     }
 
+    @LuaFunction(mainThread = true)
+    @LuaDoc(group = 7, order = 1, args = "number id, [string/number direction = \\\"up\\\"]", returns = "boolean")
+    public final Object[] highlightWorker(final IArguments args) throws LuaException {
+        final IColony colony = getColony();
+        if (colony == null || !this.passedSecurityCheck) {
+            return new Object[] { null, "no colony" };
+        }
+
+        final int workerId = args.getInt(0);
+        final Direction side = getDirection(args, 1);
+
+        final ICitizenData civilian = colony.getCitizenManager().getCivilian(workerId);
+        if (civilian == null) {
+            return new Object[] { null, "no worker" };
+        }
+
+        final AbstractEntityCitizen entity = civilian.getEntity().orElse(null);
+        if (entity == null) {
+            return new Object[] { null, "worker unloaded" };
+        }
+
+        final int costMultiplier = Colony4CC.CONFIG.getHighlightWorkerCostMultiplier();
+        if (costMultiplier > 0 && !hasResearch(colony, RESEARCH_FREE_WORKER_HIGHLIGHT)) {
+            final IItemHandler handler = getInventory(side);
+            if (handler == null) {
+                return new Object[] { null, "no inventory" };
+            }
+
+            if (!consumeFuel(handler, ModItems.scrollHighLight, costMultiplier)) {
+                return new Object[] { null, "no fuel" };
+            }
+        }
+
+        entity.addEffect(new EffectInstance(Effects.GLOWING, TICKS_PER_MINUTE * 2));
+        entity.addEffect(new EffectInstance(Effects.MOVEMENT_SPEED, TICKS_PER_MINUTE * 2));
+
+        return new Object[] { true };
+    }
+
+    @LuaFunction(mainThread = true)
+    @LuaDoc(group = 7, order = 2, args = "table pos, [table options], [string/number direction = \\\"up\\\"]", returns = "boolean")
+    public final Object[] highlightBuilding(final IArguments args) throws LuaException {
+        final IColony colony = getColony();
+        if (colony == null || !this.passedSecurityCheck) {
+            return new Object[] { null, "no colony" };
+        }
+
+        final BlockPos pos = toBlockPos(args.getTable(0)).orElse(null);
+        final Map<Object, Object> options = (Map<Object, Object>) args.optTable(1, new HashMap<>());
+        final Direction side = getDirection(args, 2);
+
+        final IBuilding building = pos == null ? null : colony.getBuildingManager().getBuilding(pos);
+        if (building == null) {
+            return new Object[] { null, "no building" };
+        }
+
+        final List<SAddBuildingOverlayPacket.Overlay> overlays = new ArrayList<>();
+        if (options.containsKey("hut")) {
+            final boolean fill = !options.get("hut").equals("frame");
+            final MutableBoundingBox box = new MutableBoundingBox(pos, pos);
+            overlays.add(new SAddBuildingOverlayPacket.Overlay(box, 0xFF0000, fill, true));
+        }
+        if (options.containsKey("footprint")) {
+            final boolean fill = !options.get("footprint").equals("frame");
+            final Tuple<BlockPos, BlockPos> corners = building.getCorners();
+            final MutableBoundingBox box = new MutableBoundingBox(corners.getA(), corners.getB());
+            overlays.add(new SAddBuildingOverlayPacket.Overlay(box, 0x0000FF, fill, false));
+        }
+        if (options.containsKey("claim")) {
+            final boolean fill = !options.get("claim").equals("frame");
+            final int claimRadius = building.getClaimRadius(building.getBuildingLevel());
+            final MutableBoundingBox box = createChunkRadiusBox(pos, claimRadius);
+            overlays.add(new SAddBuildingOverlayPacket.Overlay(box, 0x00FF00, fill, false));
+        }
+
+        ServerPlayerEntity player = null;
+        if (options.containsKey("player")) {
+            if (options.get("player") instanceof String) {
+                player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayerByName((String) options.get("player"));
+            }
+            if (player == null) {
+                return new Object[] { null, "player not found" };
+            }
+        }
+
+        final int cost = overlays.size();
+        final int costMultiplier = Colony4CC.CONFIG.getHighlightBuildingCostMultiplier();
+        if (cost > 0 && costMultiplier > 0 && !hasResearch(colony, RESEARCH_FREE_BUILDING_HIGHLIGHT)) {
+            final IItemHandler handler = getInventory(side);
+            if (handler == null) {
+                return new Object[] { null, "no inventory" };
+            }
+
+            if (!consumeFuel(handler, RGB_CHARGE.get(), cost * costMultiplier)) {
+                return new Object[] { null, "no fuel" };
+            }
+        }
+
+        final SAddBuildingOverlayPacket packet = new SAddBuildingOverlayPacket(colony.getWorld().dimension().location(), pos, overlays);
+        if (player != null) {
+            final ServerPlayerEntity finalPlayer = player;
+            Colony4CCPacketHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> finalPlayer), packet);
+        } else {
+            Colony4CCPacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), packet);
+        }
+
+        return new Object[] { true };
+    }
+
     @Nonnull
     private List<Object> getResearch(@Nonnull ResourceLocation branch, @Nullable List<ResourceLocation> names,
                                      @Nonnull IGlobalResearchTree tree, @Nonnull ILocalResearchTree colonyTree) {
@@ -547,6 +674,11 @@ public abstract class ColonyPeripheral implements IPeripheral {
         return result;
     }
 
+    private boolean hasResearch(@Nonnull final IColony colony,
+                                @Nonnull final ResourceLocation effectId) {
+        return colony.getResearchManager().getResearchEffects().getEffectStrength(effectId) > 0;
+    }
+
     private static Optional<BlockPos> toBlockPos(@Nullable Map<?, ?> table) {
         if (table == null || !table.containsKey("x") || !table.containsKey("y") || !table.containsKey("z")) {
             return Optional.empty();
@@ -557,6 +689,51 @@ public abstract class ColonyPeripheral implements IPeripheral {
         final int z = ((Number) table.get("z")).intValue();
 
         return Optional.of(new BlockPos(x, y, z));
+    }
+
+    private static MutableBoundingBox createChunkRadiusBox(final BlockPos pos, final int chunkRadius) {
+        final int blockRadius = chunkRadius * 16;
+        final ChunkPos chunk = new ChunkPos(pos);
+        final int x1 = chunk.getMinBlockX() - blockRadius;
+        final int y1 = (pos.getY() & ~15) - blockRadius;
+        final int z1 = chunk.getMinBlockZ() - blockRadius;
+        final int x2 = chunk.getMaxBlockX() + blockRadius;
+        final int y2 = (pos.getY() | 15) + blockRadius;
+        final int z2 = chunk.getMaxBlockZ() + blockRadius;
+        return new MutableBoundingBox(x1, y1, z1, x2, y2, z2);
+    }
+
+    @Nullable
+    private static Direction getDirection(@Nonnull final IArguments args, final int index) throws LuaException {
+        final Object directionArg = args.get(index);
+        if (directionArg instanceof String) {
+            return args.getEnum(index, Direction.class);
+        } else if (directionArg != null) {
+            return Direction.from3DDataValue(args.getInt(index));
+        }
+        return null;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    protected boolean consumeFuel(@Nonnull final IItemHandler handler,
+                                  @Nonnull final Item fuel,
+                                  final int count) {
+        for (int slot = 0, max = handler.getSlots(); slot < max; ++slot)
+        {
+            final ItemStack stack = handler.getStackInSlot(slot);
+            if (stack.isEmpty()) continue;
+            if (!stack.getItem().equals(fuel)) continue;
+
+            final ItemStack result = handler.extractItem(slot, count, false);
+            if (result.isEmpty()) continue;
+            if (result.getCount() < count) {
+                handler.insertItem(slot, result, false);
+                continue;
+            }
+
+            return true;
+        }
+        return false;
     }
 
     private static Object JobInfo(IJob<?> job) {
@@ -579,16 +756,16 @@ public abstract class ColonyPeripheral implements IPeripheral {
         return status.getTranslatedText();
     }
 
-    private static Object ActionInfo(@NotNull final Action action) {
+    private static Object ActionInfo(@Nonnull final Action action) {
         final String name = action.toString().toLowerCase(Locale.US);
         final String desc = LanguageHandler.format(KEY_TO_PERMISSIONS + name);
         return desc.contains(KEY_TO_PERMISSIONS) ? name : desc;
     }
 
-    private static void protectPut(@NotNull final String context,
-                                   @NotNull final Map<Object, Object> data,
-                                   @NotNull final String key,
-                                   @NotNull final Supplier<Object> valueProvider)
+    private static void protectPut(@Nonnull final String context,
+                                   @Nonnull final Map<Object, Object> data,
+                                   @Nonnull final String key,
+                                   @Nonnull final Supplier<Object> valueProvider)
     {
         try {
             data.put(key, valueProvider.get());

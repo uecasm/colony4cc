@@ -1,0 +1,27 @@
+{
+  "branch": "minecolonies:technology",
+  "parentResearch": "colony4cc:improved_holography",
+  "researchLevel": 4,
+  "name": "research.colony4cc.solar_holography.name",
+  "subtitle": "research.colony4cc.solar_holography.subtitle",
+  "icon": "colony4cc:rgb_charge",
+  "requirements": [
+    {
+      "building": "mechanic",
+      "level": 4
+    },
+    {
+      "building": "dyer",
+      "level": 4
+    },
+    {
+      "item": "colony4cc:rgb_charge",
+      "quantity": 64
+    }
+  ],
+  "effects": [
+    {
+      "colony4cc:effects/free_building_highlight": 1
+    }
+  ]
+}

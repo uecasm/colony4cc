@@ -18,3 +18,5 @@ colony.getWorkOrderResources(number id) => table
 colony.getBuilderResources(table pos) => table
 colony.getRequests() => table
 colony.getResearch() => table
+colony.highlightWorker(number id, [string/number direction = \"up\"]) => boolean
+colony.highlightBuilding(table pos, [table options], [string/number direction = \"up\"]) => boolean

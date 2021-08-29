@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[35,)"
+loaderVersion="[36,)"
 license="GPLv3"
 issueTrackerURL="https://github.com/uecasm/colony4cc/issues"
 [[mods]]
@@ -29,18 +29,18 @@ This provides a basic ComputerCraft-accessible peripheral for MineColonies.
 [[dependencies.colony4cc]]
     modId="computercraft"
     mandatory=true
-    versionRange="[1.95.2,)"
+    versionRange="[1.97.0,)"
     ordering="AFTER"
     side="BOTH"
 [[dependencies.colony4cc]]
     modId="minecolonies"
     mandatory=true
-    versionRange="[0.14.226-ALPHA,)"
+    versionRange="[0.14.315-ALPHA,)"
     ordering="AFTER"
     side="BOTH"
 [[dependencies.colony4cc]]
     modId="jei"
     mandatory=false
-    versionRange="[7.6.2,)"
+    versionRange="[7.6.4,)"
     ordering="NONE"
     side="CLIENT"

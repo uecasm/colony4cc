@@ -1,5 +1,13 @@
 # MineColonies for ComputerCraft Changelog
 
+### 1.4.0
+
+- Bumped MineColonies minimum version to 0.14.315-ALPHA.
+- Bumped (optional) JEI minimum version to 7.6.4.90.
+- Added `claimRadius` in `getBuildings`.
+- Added `highlightWorker`.
+- Added `highlightBuilding`.
+
 ### 1.3.0
 
 - Bumped MineColonies minimum version to 0.14.226-ALPHA.

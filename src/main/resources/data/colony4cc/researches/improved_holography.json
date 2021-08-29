@@ -1,0 +1,23 @@
+{
+  "branch": "minecolonies:technology",
+  "parentResearch": "minecolonies:technology/whatyaneed",
+  "researchLevel": 3,
+  "name": "research.colony4cc.improved_holography.name",
+  "subtitle": "research.colony4cc.improved_holography.subtitle",
+  "icon": "colony4cc:rgb_charge",
+  "requirements": [
+    {
+      "building": "mechanic",
+      "level": 3
+    },
+    {
+      "item": "minecraft:glowstone_dust",
+      "quantity": 64
+    }
+  ],
+  "effects": [
+    {
+      "colony4cc:effects/rgb_charge2": 1
+    }
+  ]
+}

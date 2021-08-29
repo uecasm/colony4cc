@@ -2,9 +2,16 @@ package nz.co.mirality.colony4cc.peripheral;
 
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import nz.co.mirality.colony4cc.Colony4CC;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class PocketColonyPeripheral extends ColonyPeripheral {
@@ -39,5 +46,26 @@ public class PocketColonyPeripheral extends ColonyPeripheral {
     @Override
     public Object getTarget() {
         return this.tracking;
+    }
+
+    @Override
+    @Nullable
+    protected IItemHandler getInventory(@Nullable final Direction side)
+    {
+        if (tracking == null) return null;
+
+        return tracking.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, side).orElse(null);
+    }
+
+    @Override
+    protected boolean consumeFuel(@Nonnull final IItemHandler handler, @Nonnull final Item fuel, final int count)
+    {
+        if (Colony4CC.CONFIG.getFreeCreativePocketPlayerCost() &&
+                tracking instanceof ServerPlayerEntity &&
+                ((ServerPlayerEntity) tracking).isCreative()) {
+            return true;
+        }
+
+        return super.consumeFuel(handler, fuel, count);
     }
 }

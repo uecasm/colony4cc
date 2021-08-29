@@ -26,5 +26,6 @@ public class ColonyJEI implements IModPlugin {
         upgrades.add(new ItemStack(Colony4CC.UPGRADE_WIRELESS_NORMAL.get()));
         upgrades.add(new ItemStack(Colony4CC.UPGRADE_WIRELESS_ADVANCED.get()));
         registration.addIngredientInfo(upgrades, VanillaTypes.ITEM, "info.colony4cc.upgrade_merging");
+        registration.addIngredientInfo(new ItemStack(Colony4CC.RGB_CHARGE.get()), VanillaTypes.ITEM, "info.colony4cc.rgb_charge");
     }
 }
