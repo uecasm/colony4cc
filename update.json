@@ -1,10 +1,17 @@
 {
   "homepage": "https://www.curseforge.com/minecraft/mc-mods/minecolonies-for-computercraft",
   "promos": {
-    "1.16.5-latest": "1.4.0",
-    "1.16.5-recommended": "1.4.0",
+    "1.17.1-latest": "2.1.1",
+    "1.17.1-recommended": "2.1.1",
+    "1.16.5-latest": "1.4.1",
+    "1.16.5-recommended": "1.4.1",
     "1.16.4-latest": "1.3.0",
     "1.16.4-recommended": "1.3.0"
+  },
+  "1.17.1": {
+    "2.0.0": "Updated to 1.17",
+    "2.1.0": "Compatibility for CC:Tweaked 1.99.0",
+    "2.1.1": "Compatibility for MineColonies 1.0.201-ALPHA"
   },
   "1.16.5": {
     "1.2.1": "Fixes resources list when on a server",
@@ -13,7 +20,8 @@
     "1.2.4": "Adds citizen health and armor data",
     "1.2.5": "Adds error check for weird citizen data",
     "1.3.0": "Fixes getInfo error after families update",
-    "1.4.0": "Adds worker and building highlighting"
+    "1.4.0": "Adds worker and building highlighting",
+    "1.4.1": "Compatibility for MineColonies 1.0.197-ALPHA"
   },
   "1.16.4": {
     "1.2.1": "Fixes resources list when on a server",

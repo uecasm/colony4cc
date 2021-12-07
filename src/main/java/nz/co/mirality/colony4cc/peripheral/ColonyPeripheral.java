@@ -5,6 +5,7 @@ import com.ldtteam.structurize.util.LanguageHandler;
 import com.minecolonies.api.IMinecoloniesAPI;
 import com.minecolonies.api.colony.*;
 import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.buildings.modules.IAssignsCitizen;
 import com.minecolonies.api.colony.jobs.IJob;
 import com.minecolonies.api.colony.managers.interfaces.IBuildingManager;
 import com.minecolonies.api.colony.permissions.Action;
@@ -177,13 +178,18 @@ public abstract class ColonyPeripheral implements IPeripheral {
             protectPut("getBuildings.footprint", footprintData, "mirror", building::isMirrored);
 
             final List<Object> citizensData = new ArrayList<>();
-            for (final ICitizenData citizen : building.getAssignedCitizen()) {
-                final Map<Object, Object> citizenData = new HashMap<>();
-                protectPut("getBuildings.citizen", citizenData, "id", citizen::getId);
-                protectPut("getBuildings.citizen", citizenData, "name", citizen::getName);
-                citizensData.add(citizenData);
+            int maxInhabitants = 0;
+            for (final IAssignsCitizen module : building.getModules(IAssignsCitizen.class)) {
+                maxInhabitants += module.getModuleMax();
+                for (final ICitizenData citizen : module.getAssignedCitizen()) {
+                    final Map<Object, Object> citizenData = new HashMap<>();
+                    protectPut("getBuildings.citizen", citizenData, "id", citizen::getId);
+                    protectPut("getBuildings.citizen", citizenData, "name", citizen::getName);
+                    citizensData.add(citizenData);
+                }
             }
-            for (int i = citizensData.size(); i < building.getMaxInhabitants(); ++i) {
+
+            for (int i = citizensData.size(); i < maxInhabitants; ++i) {
                 citizensData.add(new HashMap<>());
             }
 
@@ -738,7 +744,7 @@ public abstract class ColonyPeripheral implements IPeripheral {
 
     private static Object JobInfo(IJob<?> job) {
         if (job == null) return null;
-        return LanguageHandler.translateKey(job.getName());
+        return LanguageHandler.translateKey(job.getJobRegistryEntry().getTranslationKey());
     }
 
     private static Object BuildingInfo(@Nullable final IBuilding building) {

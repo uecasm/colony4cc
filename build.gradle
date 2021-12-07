@@ -159,10 +159,12 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     compile fg.deobf("org.squiddev:cc-tweaked-${cc_version}")
-    compile(fg.deobf("com.minecolonies:minecolonies:${colony_version}:universal") {
+    //compile(fg.deobf("com.minecolonies:minecolonies:${colony_version}:universal") {
+    compile(fg.deobf("curse.maven:minecolonies-245506:3543467") {
         exclude group: "mezz.jei", module: "*"
     })
-    compile fg.deobf("com.ldtteam:structurize:${structurize_version}:universal")
+    //compile fg.deobf("com.ldtteam:structurize:${structurize_version}:universal")
+    compile fg.deobf("curse.maven:structurize-298744:3488829")
     runtimeOnly fg.deobf("com.ldtteam:datagenerators:${datagen_version}")
 
     compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-${top_version}:api")

@@ -1,5 +1,9 @@
 # MineColonies for ComputerCraft Changelog
 
+### 1.4.1
+
+- Compatibility for MineColonies 1.0.197-ALPHA
+
 ### 1.4.0
 
 - Bumped MineColonies minimum version to 0.14.315-ALPHA.
